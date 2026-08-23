@@ -6,12 +6,16 @@ from src.models.task import Task, TaskGraph
 
 # Domain → keywords for lightweight detection (LLM planner can replace later)
 DOMAIN_KEYWORDS: dict[str, list[str]] = {
-    "orchestrator": ["orchestrate", "coordinate agents", "multi agent"],
+    "orchestrator": ["orchestrate", "coordinate agents", "multi agent", "kitne agents", "how many agents"],
     "research": ["explore", "research", "find where", "locate", "investigate", "how does", "search codebase"],
     "implementation": ["implement", "add feature", "write code", "build", "create function", "fix bug", "refactor"],
     "code-review": ["review", "code review", "pr review", "critique", "audit code"],
     "testing": ["test", "unit test", "pytest", "coverage", "spec", "tdd"],
-    "git": ["git", "commit", "branch", "pull request", "pr ", "merge", "diff", "repo", "push"],
+    "git": [
+        "git", "commit", "branch", "pull request", "pr ", "merge", "diff", "repo", "repos",
+        "push", "github", "profile", "bio", "repositories", "my repos", "meri repos",
+        "github token", "github account",
+    ],
     "frontend": ["ui", "frontend", "css", "component", "layout", "react", "vue", "html", "responsive", "design system"],
     "backend": ["backend", "api", "endpoint", "server", "route", "service layer", "handler"],
     "security": ["security", "auth", "vulnerability", "xss", "sql injection", "secret", "cve", "permission"],
@@ -43,12 +47,12 @@ DOMAIN_PRIMARY_SKILL: dict[str, str] = {
 
 # Default tool allowlist per domain (permission service still gates)
 DOMAIN_TOOLS: dict[str, list[str]] = {
-    "orchestrator": ["read", "search"],
-    "research": ["read", "search", "bash"],
+    "orchestrator": ["read", "search", "github"],
+    "research": ["read", "search", "bash", "github"],
     "implementation": ["read", "write", "edit", "search", "bash"],
-    "code-review": ["read", "search"],
+    "code-review": ["read", "search", "github"],
     "testing": ["read", "write", "edit", "search", "bash"],
-    "git": ["bash", "read", "search"],
+    "git": ["bash", "read", "search", "github"],
     "frontend": ["read", "write", "edit", "search", "bash"],
     "backend": ["read", "write", "edit", "search", "bash"],
     "security": ["read", "search", "bash"],
@@ -57,7 +61,7 @@ DOMAIN_TOOLS: dict[str, list[str]] = {
     "tools": ["bash", "read", "search"],
     "memory": ["read", "write", "edit", "search"],
     "planning": ["read", "search"],
-    "general": ["read", "write", "edit", "search", "bash"],
+    "general": ["read", "write", "edit", "search", "bash", "github"],
 }
 
 
