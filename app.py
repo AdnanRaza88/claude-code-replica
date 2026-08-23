@@ -11,6 +11,7 @@ from src.services.session_service import SessionService
 from src.services.permission_service import PermissionService
 from src.services.event_service import EventService
 from src.services.context_service import ContextService
+from src.services.skill_service import SkillService
 from src.adapters.providers.registry import ProviderRegistry
 from src.adapters.providers.presets import get_preset, PROVIDER_PRESETS
 from src.tools.base import ToolRegistry
@@ -28,7 +29,9 @@ def get_services():
         session_svc = SessionService()
         perm_svc = PermissionService()
         event_svc = EventService()
-        ctx_svc = ContextService()
+        skill_svc = SkillService(Path(__file__).parent / "skills")
+        skill_svc.load_all()
+        ctx_svc = ContextService(skill_service=skill_svc)
         provider_reg = ProviderRegistry()
         tool_reg = ToolRegistry()
 
@@ -56,12 +59,14 @@ def get_services():
             provider_reg,
             tool_reg,
             get_credential=get_cred,
+            skill_service=skill_svc,
         )
         st.session_state.services = {
             "session": session_svc,
             "permission": perm_svc,
             "event": event_svc,
             "context": ctx_svc,
+            "skills": skill_svc,
             "runtime": runtime,
             "providers": provider_reg,
         }
