@@ -8,16 +8,25 @@ from src.models.context import ContextPack, ContextRef
 
 
 DOMAIN_MAP: dict[str, list[str]] = {
-    "harness": ["Harness", "Communicating with the user", "Session-specific guidance", "Context management"],
-    "memory": ["Memory"],
-    "planning": ["EnterPlanMode", "ExitPlanMode", "Task"],
-    "agents": ["Agents", "Agent", "ListAgents", "SendMessage"],
-    "tools": ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch"],
+    "orchestrator": ["System prompt", "Harness", "Communicating with the user", "Agents", "Task"],
+    "planning": ["EnterPlanMode", "ExitPlanMode", "Task", "System prompt"],
+    "research": ["Context management", "Harness"],
+    "implementation": ["System prompt", "Harness"],
+    "code-review": ["System prompt", "Harness"],
+    "testing": ["System prompt", "Harness"],
     "git": ["Git"],
+    "frontend": ["DesignSync", "Artifact"],
+    "backend": ["System prompt", "Harness"],
+    "security": ["System prompt", "Harness"],
+    "docs": ["System prompt", "Harness"],
     "browser": ["Claude in Chrome browser automation"],
+    "tools": ["Bash", "Read", "Write", "Edit", "WebSearch", "WebFetch"],
+    "memory": ["Memory"],
+    "general": ["System prompt", "Harness", "Communicating with the user"],
+    "harness": ["Harness", "Communicating with the user", "Session-specific guidance", "Context management"],
+    "agents": ["Agents", "Agent", "ListAgents", "SendMessage"],
     "design": ["DesignSync", "Artifact"],
     "scheduling": ["CronCreate", "CronDelete", "CronList", "ScheduleWakeup"],
-    "general": ["System prompt", "Harness", "Communicating with the user"],
 }
 
 
@@ -78,12 +87,16 @@ class ContextIndexer:
 
 
 class ContextService:
-    def __init__(self):
+    def __init__(self, skill_service=None):
         self.indexer = ContextIndexer()
         self._packs: dict[str, ContextPack] = {}
+        self.skill_service = skill_service
 
     def load_source(self, path: str | Path) -> None:
         self.indexer.index_file(path)
+
+    def set_skill_service(self, skill_service) -> None:
+        self.skill_service = skill_service
 
     def build_pack(
         self,
@@ -111,33 +124,64 @@ class ContextService:
             if len(excerpts) >= max_excerpts:
                 break
 
+        skill_sections: list[str] = []
+        resolved_skill_ids = list(skill_ids or [])
+        if self.skill_service is not None:
+            if not resolved_skill_ids:
+                primary = self.skill_service.primary_for_domain(domain)
+                if primary:
+                    resolved_skill_ids = [primary.skill_id]
+            for sid in resolved_skill_ids:
+                skill = self.skill_service.get(sid)
+                if skill:
+                    skill_sections.append(skill.to_prompt_section())
+
+        role = role_instructions or self._default_role(domain)
+        if skill_sections and not role_instructions:
+            role = self._short_role(domain)
+
         pack = ContextPack(
             domain=domain,
-            role_instructions=role_instructions or self._default_role(domain),
+            role_instructions=role,
             source_excerpts=excerpts,
             project_context=project_context,
-            skill_ids=skill_ids or [],
+            skill_ids=resolved_skill_ids,
             tool_contracts=tool_contracts or [],
-            token_estimate=sum(len(e) // 4 for e in excerpts) + len(project_context) // 4,
-            metadata={"context_refs": refs},
+            token_estimate=(
+                sum(len(e) // 4 for e in excerpts)
+                + sum(len(s) // 4 for s in skill_sections)
+                + len(project_context) // 4
+            ),
+            metadata={
+                "context_refs": refs,
+                "skill_sections": skill_sections,
+            },
         )
         self._packs[pack.pack_id] = pack
         return pack
 
-    def _default_role(self, domain: str) -> str:
+    def _short_role(self, domain: str) -> str:
         roles = {
-            "planning": "You are the planning agent. Decompose the objective into clear typed tasks.",
-            "agents": "You coordinate specialist agents and aggregate their results.",
-            "tools": "You execute tools carefully and respect permission decisions.",
-            "git": "You handle repository inspection and git operations under permission gates.",
-            "memory": "You manage persistent memory facts and retrieval.",
-            "browser": "You perform browser automation tasks with focus and without loops.",
-            "design": "You produce design and frontend oriented outputs.",
-            "scheduling": "You manage scheduled and one-shot background tasks.",
-            "harness": "You enforce harness rules, communication style and context discipline.",
+            "orchestrator": "You are the main orchestrator. Decompose, spawn specialists, synthesize. Do not do deep implementation yourself.",
+            "planning": "You are the planning agent. Produce a clear task decomposition.",
+            "research": "You are the research agent. Explore and summarize accurately. Do not modify code.",
+            "implementation": "You are the implementation agent. Write clean, minimal, production-quality code.",
+            "code-review": "You are the code-review agent. Be strict, specific, and severity-ordered.",
+            "testing": "You are the testing agent. Write and run meaningful tests.",
+            "git": "You are the git agent. Inspect first, mutate only with permission, keep commits focused.",
+            "frontend": "You are the frontend agent. Match design system, accessibility, and existing patterns.",
+            "backend": "You are the backend agent. Validate input, keep handlers thin, stable contracts.",
+            "security": "You are the security agent. Find and report risks; do not silently fix critical issues.",
+            "docs": "You are the documentation agent. Short, accurate, example-driven docs.",
+            "browser": "You are the browser agent. Short deterministic actions, no loops.",
+            "tools": "You are the tools/shell agent. Prefer safe commands; summarize output.",
+            "memory": "You are the memory agent. Store only durable high-value facts.",
             "general": "You are a software engineering agent. Prefer concrete action over speculation.",
         }
         return roles.get(domain, roles["general"])
+
+    def _default_role(self, domain: str) -> str:
+        return self._short_role(domain)
 
     def get_pack(self, pack_id: str) -> ContextPack | None:
         return self._packs.get(pack_id)
