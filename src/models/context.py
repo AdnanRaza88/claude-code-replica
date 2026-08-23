@@ -31,10 +31,13 @@ class ContextPack(BaseModel):
         parts = []
         if self.role_instructions:
             parts.append(self.role_instructions)
+        skill_sections = self.metadata.get("skill_sections") or []
+        if skill_sections:
+            parts.extend(skill_sections)
+        elif self.skill_ids:
+            parts.append("## Assigned skills\n" + ", ".join(self.skill_ids))
         if self.project_context:
             parts.append("## Project context\n" + self.project_context)
         if self.source_excerpts:
             parts.append("## Reference material\n" + "\n\n".join(self.source_excerpts))
-        if self.skill_ids:
-            parts.append("## Assigned skills\n" + ", ".join(self.skill_ids))
         return "\n\n".join(parts)

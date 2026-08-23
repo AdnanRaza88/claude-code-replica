@@ -4,6 +4,7 @@ from .events import RuntimeEvent, EventType
 from .provider import ProviderConfig, ModelResponse, Message
 from .permission import PermissionMode, PermissionDecision, PermissionRequest
 from .context import ContextPack, ContextRef
+from .skill import Skill
 
 __all__ = [
     "AgentState",
@@ -24,4 +25,5 @@ __all__ = [
     "PermissionRequest",
     "ContextPack",
     "ContextRef",
+    "Skill",
 ]
