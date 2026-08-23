@@ -45,6 +45,19 @@ class PermissionService:
             )
             return req
 
+        # Low-risk tools (read-only connectors, search, etc.) auto-approve
+        if risk == "low" or tool_name in ("github", "read", "search"):
+            req = PermissionRequest(
+                session_id=session_id,
+                agent_id=agent_id,
+                tool_name=tool_name,
+                tool_input=tool_input,
+                risk=risk,
+                reason=reason,
+                decision=PermissionDecision.APPROVED,
+            )
+            return req
+
         if self.default_mode == PermissionMode.SESSION_ALLOW or self.is_session_allowed(
             session_id, tool_name
         ):
