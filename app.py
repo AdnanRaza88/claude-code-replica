@@ -29,11 +29,23 @@ def get_services():
         session_svc = SessionService()
         perm_svc = PermissionService()
         event_svc = EventService()
-        skill_svc = SkillService(Path(__file__).parent / "skills")
-        skill_svc.load_all()
-        ctx_svc = ContextService(skill_service=skill_svc)
         provider_reg = ProviderRegistry()
         tool_reg = ToolRegistry()
+
+        skill_svc = None
+        try:
+            skills_root = Path(__file__).resolve().parent / "skills"
+            skill_svc = SkillService(skills_root)
+            skill_svc.load_all()
+        except Exception as e:
+            st.session_state.skills_load_error = str(e)
+
+        try:
+            ctx_svc = ContextService(skill_service=skill_svc)
+        except TypeError:
+            ctx_svc = ContextService()
+            if skill_svc is not None and hasattr(ctx_svc, "set_skill_service"):
+                ctx_svc.set_skill_service(skill_svc)
 
         root = Path.cwd()
         tool_reg.register(ReadTool(root))
@@ -42,25 +54,37 @@ def get_services():
         tool_reg.register(ProjectSearchTool(root))
         tool_reg.register(BashTool(root))
 
-        source = Path(__file__).parent / "knowledge" / "source_headings.md"
+        source = Path(__file__).resolve().parent / "knowledge" / "source_headings.md"
         if source.exists():
             ctx_svc.load_source(source)
 
-        def get_cred(ref: str | None) -> str | None:
+        def get_cred(ref):
             if not ref:
                 return None
             return st.session_state.get("credentials", {}).get(ref)
 
-        runtime = AgentRuntime(
-            session_svc,
-            perm_svc,
-            event_svc,
-            ctx_svc,
-            provider_reg,
-            tool_reg,
-            get_credential=get_cred,
-            skill_service=skill_svc,
-        )
+        try:
+            runtime = AgentRuntime(
+                session_svc,
+                perm_svc,
+                event_svc,
+                ctx_svc,
+                provider_reg,
+                tool_reg,
+                get_credential=get_cred,
+                skill_service=skill_svc,
+            )
+        except TypeError:
+            runtime = AgentRuntime(
+                session_svc,
+                perm_svc,
+                event_svc,
+                ctx_svc,
+                provider_reg,
+                tool_reg,
+                get_credential=get_cred,
+            )
+
         st.session_state.services = {
             "session": session_svc,
             "permission": perm_svc,
