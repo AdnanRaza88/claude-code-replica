@@ -15,11 +15,14 @@ class OpenAICompatibleProvider:
         timeout: float = 90.0,
     ):
         self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+        self.base_url = (base_url or "https://api.openai.com/v1").rstrip("/")
         self.timeout = timeout
 
     def _headers(self) -> dict[str, str]:
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
         return headers
@@ -52,20 +55,19 @@ class OpenAICompatibleProvider:
                 for t in tools
             ]
 
+        url = f"{self.base_url}/chat/completions"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.post(
-                f"{self.base_url}/chat/completions",
-                headers=self._headers(),
-                json=payload,
-            )
-            resp.raise_for_status()
+            resp = await client.post(url, headers=self._headers(), json=payload)
+            if resp.status_code >= 400:
+                detail = resp.text[:800]
+                raise RuntimeError(f"provider HTTP {resp.status_code}: {detail}")
             data = resp.json()
 
-        choice = data["choices"][0]
-        message = choice.get("message", {})
+        choice = (data.get("choices") or [{}])[0]
+        message = choice.get("message") or {}
         tool_calls = []
         for tc in message.get("tool_calls") or []:
-            fn = tc.get("function", {})
+            fn = tc.get("function") or {}
             args = fn.get("arguments", "{}")
             if isinstance(args, str):
                 try:
@@ -93,12 +95,29 @@ class OpenAICompatibleProvider:
         )
 
     async def list_models(self) -> list[str]:
+        url = f"{self.base_url}/models"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.get(
-                f"{self.base_url}/models",
-                headers=self._headers(),
-            )
+            resp = await client.get(url, headers=self._headers())
             if resp.status_code != 200:
                 return []
             data = resp.json()
-            return [m["id"] for m in data.get("data", [])]
+
+        models: list[str] = []
+        if isinstance(data, dict):
+            items = data.get("data") or data.get("models") or []
+            for m in items:
+                if isinstance(m, str):
+                    models.append(m)
+                elif isinstance(m, dict):
+                    mid = m.get("id") or m.get("name") or m.get("model")
+                    if mid:
+                        models.append(str(mid))
+        elif isinstance(data, list):
+            for m in data:
+                if isinstance(m, str):
+                    models.append(m)
+                elif isinstance(m, dict):
+                    mid = m.get("id") or m.get("name")
+                    if mid:
+                        models.append(str(mid))
+        return sorted(set(models))
