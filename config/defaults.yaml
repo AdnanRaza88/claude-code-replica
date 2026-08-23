@@ -1,0 +1,28 @@
+runtime:
+  max_depth: 4
+  max_children_per_agent: 8
+  global_active_agents: 32
+  global_spawn_budget: 64
+  max_parallel_branches: 12
+  per_task_wall_clock_seconds: 300
+  per_agent_timeout_seconds: 90
+  token_budget: 120000
+
+permission:
+  default_mode: ask
+
+providers:
+  ollama:
+    default_model: llama3.2
+    base_url: http://localhost:11434/v1
+  groq:
+    default_model: llama-3.3-70b-versatile
+    base_url: https://api.groq.com/openai/v1
+  gemini:
+    default_model: gemini-2.0-flash
+  openai:
+    default_model: gpt-4o-mini
+  opencode:
+    base_url: http://localhost:3000/v1
+  zen:
+    base_url: http://localhost:8080/v1
