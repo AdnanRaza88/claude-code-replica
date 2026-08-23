@@ -28,7 +28,7 @@ providers:
     default_model: big-pickle
     base_url: https://opencode.ai/inference/openai/v1
   zen:
-    default_model: glm-4.6
+    default_model: big-pickle
     base_url: https://opencode.ai/zen/v1
   openai_compatible:
     default_model: ""
