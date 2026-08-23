@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, Callable, Awaitable
+from typing import Any, Callable, Optional
 
 from src.models.agent import AgentState, AgentStatus, BudgetState
 from src.models.task import Task, TaskGraph, TaskStatus
@@ -13,10 +13,14 @@ from src.services.session_service import SessionService, SessionState
 from src.services.permission_service import PermissionService
 from src.services.event_service import EventService
 from src.services.context_service import ContextService
-from src.services.skill_service import SkillService
 from src.adapters.providers.registry import ProviderRegistry
 from src.tools.base import ToolRegistry, ToolResult
 from src.orchestration.planner import Planner
+
+try:
+    from src.services.skill_service import SkillService
+except Exception:  # pragma: no cover
+    SkillService = None  # type: ignore
 
 
 class AgentRuntime:
@@ -28,8 +32,8 @@ class AgentRuntime:
         context_service: ContextService,
         provider_registry: ProviderRegistry,
         tool_registry: ToolRegistry,
-        get_credential: Callable[[str], str | None] | None = None,
-        skill_service: SkillService | None = None,
+        get_credential: Optional[Callable[[str], Optional[str]]] = None,
+        skill_service=None,
     ):
         self.sessions = session_service
         self.permissions = permission_service
@@ -38,11 +42,26 @@ class AgentRuntime:
         self.providers = provider_registry
         self.tools = tool_registry
         self.get_credential = get_credential or (lambda _: None)
-        self.skills = skill_service or SkillService()
-        if skill_service is None:
-            self.skills.load_all()
-        self.context.set_skill_service(self.skills)
-        self.planner = Planner(skill_service=self.skills)
+
+        if skill_service is not None:
+            self.skills = skill_service
+        elif SkillService is not None:
+            try:
+                self.skills = SkillService()
+                self.skills.load_all()
+            except Exception:
+                self.skills = None
+        else:
+            self.skills = None
+
+        if self.skills is not None and hasattr(self.context, "set_skill_service"):
+            self.context.set_skill_service(self.skills)
+
+        try:
+            self.planner = Planner(skill_service=self.skills)
+        except TypeError:
+            self.planner = Planner()
+
         self._agents: dict[str, AgentState] = {}
         self._graphs: dict[str, TaskGraph] = {}
         self._cancel_flags: dict[str, bool] = {}
@@ -100,7 +119,7 @@ class AgentRuntime:
         parent_id: str | None,
     ) -> AgentState:
         skill_refs = list(task.required_skills or [])
-        if not skill_refs and self.skills:
+        if not skill_refs and self.skills is not None:
             primary = self.skills.primary_for_domain(task.domain)
             if primary:
                 skill_refs = [primary.skill_id]
