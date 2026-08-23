@@ -45,8 +45,7 @@ class PermissionService:
             )
             return req
 
-        # Low-risk tools (read-only connectors, search, etc.) auto-approve
-        if risk == "low" or tool_name in ("github", "read", "search"):
+        if risk == "low" or tool_name in ("github", "read", "search", "web_search", "web_fetch"):
             req = PermissionRequest(
                 session_id=session_id,
                 agent_id=agent_id,
