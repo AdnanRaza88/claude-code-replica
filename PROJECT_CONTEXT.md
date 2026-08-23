@@ -65,11 +65,14 @@ User prompt (Streamlit)
 | `config/defaults.yaml` | Budgets + provider defaults |
 | `knowledge/source_headings.md` | Partitioned source index |
 
-### Planner domains today
+### Planner domains + skills (current)
 
-`git`, `browser`, `design`, `planning`, `memory`, `tools`, `scheduling`, fallback `general`.
+Domains: `orchestrator`, `research`, `implementation`, `code-review`, `testing`, `git`, `frontend`, `backend`, `security`, `docs`, `browser`, `tools`, `memory`, `planning`, `general`.
 
-Simple prompts (“Hi”) → **one** `general` agent. Multi-keyword / long objectives → root + children.
+Each domain has a primary skill under `skills/<domain>/SKILL.md` (Claude-style frontmatter + body).  
+`SkillService` loads them; `ContextService` injects skill body into each agent's system pack; planner assigns `required_skills` + domain tool allowlists.
+
+Simple prompts → one domain agent. Multi-keyword / long objectives → root **orchestrator** + specialist children, each with isolated context + own skill.
 
 ## Providers (important)
 
