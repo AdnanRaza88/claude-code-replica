@@ -3,6 +3,7 @@ from .file_tools import ReadTool, WriteTool, EditTool
 from .search_tools import ProjectSearchTool
 from .bash_tool import BashTool
 from .github_tool import GitHubTool
+from .web_tools import WebSearchTool, WebFetchTool
 
 __all__ = [
     "Tool",
@@ -14,4 +15,6 @@ __all__ = [
     "ProjectSearchTool",
     "BashTool",
     "GitHubTool",
+    "WebSearchTool",
+    "WebFetchTool",
 ]
