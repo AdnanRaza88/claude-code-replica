@@ -2,6 +2,7 @@ from .base import Tool, ToolResult, ToolRegistry
 from .file_tools import ReadTool, WriteTool, EditTool
 from .search_tools import ProjectSearchTool
 from .bash_tool import BashTool
+from .github_tool import GitHubTool
 
 __all__ = [
     "Tool",
@@ -12,4 +13,5 @@ __all__ = [
     "EditTool",
     "ProjectSearchTool",
     "BashTool",
+    "GitHubTool",
 ]
