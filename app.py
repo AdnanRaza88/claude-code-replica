@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from pathlib import Path
 
 import streamlit as st
@@ -13,6 +12,7 @@ from src.services.permission_service import PermissionService
 from src.services.event_service import EventService
 from src.services.context_service import ContextService
 from src.adapters.providers.registry import ProviderRegistry
+from src.adapters.providers.presets import get_preset, PROVIDER_PRESETS
 from src.tools.base import ToolRegistry
 from src.tools.file_tools import ReadTool, WriteTool, EditTool
 from src.tools.search_tools import ProjectSearchTool
@@ -68,6 +68,8 @@ def get_services():
         st.session_state.credentials = st.session_state.get("credentials", {})
         st.session_state.messages = st.session_state.get("messages", [])
         st.session_state.active_session_id = st.session_state.get("active_session_id")
+        st.session_state.fetched_models = st.session_state.get("fetched_models", {})
+        st.session_state.model_fetch_error = st.session_state.get("model_fetch_error", "")
     return st.session_state.services
 
 
@@ -101,21 +103,117 @@ def run_async(coro):
     return asyncio.run(coro)
 
 
+async def fetch_models(services, provider: str, base_url: str, api_key: str | None) -> list[str]:
+    config = ProviderConfig(
+        provider=provider,
+        model="probe",
+        base_url=base_url or None,
+        credential_ref=provider,
+    )
+    client = services["providers"].create(config, api_key)
+    models = await client.list_models()
+    return models
+
+
 def main():
     services = get_services()
-    providers = services["providers"].list_providers()
+    provider_ids = [p for p in services["providers"].list_providers() if p in PROVIDER_PRESETS]
+    labels = {pid: get_preset(pid).get("label", pid) for pid in provider_ids}
 
     with st.sidebar:
         st.title("Settings")
-        provider = st.selectbox("Provider", providers, index=providers.index("ollama") if "ollama" in providers else 0)
-        model = st.text_input("Model", value="llama3.2")
-        base_url = st.text_input("Base URL (optional)", value="")
-        api_key = st.text_input("API key / token", type="password", value="")
+
+        provider = st.selectbox(
+            "Provider",
+            provider_ids,
+            format_func=lambda p: labels.get(p, p),
+            index=provider_ids.index("opencode") if "opencode" in provider_ids else 0,
+            key="provider_select",
+        )
+        preset = get_preset(provider)
+
+        default_url = preset.get("base_url") or ""
+        if "base_url_by_provider" not in st.session_state:
+            st.session_state.base_url_by_provider = {}
+        if provider not in st.session_state.base_url_by_provider:
+            st.session_state.base_url_by_provider[provider] = default_url
+
+        base_url = st.text_input(
+            "Base URL",
+            value=st.session_state.base_url_by_provider.get(provider, default_url),
+            help="Must end with /v1 for OpenAI-compatible providers",
+            key=f"base_url_{provider}",
+        )
+        st.session_state.base_url_by_provider[provider] = base_url
+
+        api_key = st.text_input(
+            "API key / token",
+            type="password",
+            value=st.session_state.credentials.get(provider, ""),
+            help="Required for OpenCode, Zen, Groq, OpenAI, Gemini",
+            key=f"api_key_{provider}",
+        )
         if api_key:
             st.session_state.credentials[provider] = api_key
 
+        fallback = services["providers"].fallback_models(provider)
+        fetched = st.session_state.fetched_models.get(provider) or []
+        model_options = fetched if fetched else fallback
+
+        col_a, col_b = st.columns([1, 1])
+        with col_a:
+            if st.button("Fetch models", use_container_width=True):
+                if not base_url.strip():
+                    st.session_state.model_fetch_error = "Base URL required"
+                else:
+                    try:
+                        models = run_async(
+                            fetch_models(
+                                services,
+                                provider,
+                                base_url.strip(),
+                                st.session_state.credentials.get(provider),
+                            )
+                        )
+                        if asyncio.isfuture(models):
+                            st.session_state.model_fetch_error = "Could not run model fetch in this context"
+                        elif models:
+                            st.session_state.fetched_models[provider] = models
+                            st.session_state.model_fetch_error = ""
+                            st.success(f"{len(models)} models loaded")
+                        else:
+                            st.session_state.model_fetch_error = (
+                                "No models returned. Check base URL and API key. "
+                                "Preset list will be used."
+                            )
+                    except Exception as e:
+                        st.session_state.model_fetch_error = str(e)[:300]
+        with col_b:
+            if st.button("Use presets", use_container_width=True):
+                st.session_state.fetched_models[provider] = []
+                st.session_state.model_fetch_error = ""
+                st.rerun()
+
+        if st.session_state.model_fetch_error:
+            st.warning(st.session_state.model_fetch_error)
+
+        if model_options:
+            default_model = preset.get("default_model") or model_options[0]
+            idx = model_options.index(default_model) if default_model in model_options else 0
+            model = st.selectbox("Model", model_options, index=idx, key=f"model_select_{provider}")
+        else:
+            model = st.text_input(
+                "Model",
+                value=preset.get("default_model") or "",
+                key=f"model_text_{provider}",
+            )
+
+        st.caption(f"Active: `{provider}` / `{model}`")
+        if base_url:
+            st.caption(f"URL: `{base_url}`")
+
         perm_mode = st.selectbox("Permission mode", ["ask", "session_allow", "deny"], index=0)
-        app_mode = st.selectbox("Mode", ["agent", "plan"], index=0)
+        st.selectbox("Mode", ["agent", "plan"], index=0)
 
         if st.button("New session"):
             st.session_state.active_session_id = None
@@ -143,12 +241,16 @@ def main():
                         services["permission"].decide(req.request_id, PermissionDecision.DENIED)
                         st.rerun()
 
-    session = ensure_session(services, provider, model, base_url or None, perm_mode)
+    if not model:
+        st.error("Select or type a model name before running tasks.")
+        return
+
+    session = ensure_session(services, provider, model, base_url.strip() or None, perm_mode)
     services["permission"].set_mode(PermissionMode(perm_mode))
     if session.provider_config:
         session.provider_config.provider = provider
         session.provider_config.model = model
-        session.provider_config.base_url = base_url or None
+        session.provider_config.base_url = base_url.strip() or None
         session.provider_config.credential_ref = provider
 
     st.title("Claude Code Replica")
@@ -187,7 +289,7 @@ def main():
         tree = services["runtime"].get_agent_tree(session.session_id)
         if tree:
             for node in tree:
-                indent = " " * node["depth"]
+                indent = "\u2003" * node["depth"]
                 st.text(f"{indent}{node['domain']} [{node['status']}]")
                 st.caption(f"{indent}{node['objective']}")
         else:
