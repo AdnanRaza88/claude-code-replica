@@ -13,6 +13,7 @@ from src.services.session_service import SessionService, SessionState
 from src.services.permission_service import PermissionService
 from src.services.event_service import EventService
 from src.services.context_service import ContextService
+from src.services.skill_service import SkillService
 from src.adapters.providers.registry import ProviderRegistry
 from src.tools.base import ToolRegistry, ToolResult
 from src.orchestration.planner import Planner
@@ -28,6 +29,7 @@ class AgentRuntime:
         provider_registry: ProviderRegistry,
         tool_registry: ToolRegistry,
         get_credential: Callable[[str], str | None] | None = None,
+        skill_service: SkillService | None = None,
     ):
         self.sessions = session_service
         self.permissions = permission_service
@@ -36,7 +38,11 @@ class AgentRuntime:
         self.providers = provider_registry
         self.tools = tool_registry
         self.get_credential = get_credential or (lambda _: None)
-        self.planner = Planner()
+        self.skills = skill_service or SkillService()
+        if skill_service is None:
+            self.skills.load_all()
+        self.context.set_skill_service(self.skills)
+        self.planner = Planner(skill_service=self.skills)
         self._agents: dict[str, AgentState] = {}
         self._graphs: dict[str, TaskGraph] = {}
         self._cancel_flags: dict[str, bool] = {}
@@ -93,14 +99,22 @@ class AgentRuntime:
         depth: int,
         parent_id: str | None,
     ) -> AgentState:
+        skill_refs = list(task.required_skills or [])
+        if not skill_refs and self.skills:
+            primary = self.skills.primary_for_domain(task.domain)
+            if primary:
+                skill_refs = [primary.skill_id]
+        role = "orchestrator" if task.domain in ("orchestrator", "planning") and depth == 0 else "worker"
         agent = AgentState(
             task_id=task.task_id,
             session_id=session.session_id,
             parent_id=parent_id,
             domain=task.domain,
+            role=role,
             objective=task.objective,
             depth=depth,
             budgets=BudgetState(depth=depth),
+            skill_refs=skill_refs,
             allowed_tools=task.required_tools or self.tools.list_names(),
             provider_config_ref=session.session_id,
             status=AgentStatus.CREATED,
@@ -130,10 +144,11 @@ class AgentRuntime:
         pack = self.context.build_pack(
             domain=agent.domain,
             project_context=project_context,
-            skill_ids=task.required_skills,
+            skill_ids=agent.skill_refs or task.required_skills,
             tool_contracts=self.tools.specs_for(agent.allowed_tools),
         )
         agent.context_refs = pack.metadata.get("context_refs", [])
+        agent.skill_refs = pack.skill_ids or agent.skill_refs
 
         children = [t for t in graph.tasks.values() if t.parent_task_id == task.task_id]
         if children and agent.can_spawn():
@@ -338,23 +353,15 @@ class AgentRuntime:
                 await asyncio.sleep(0.5)
                 if self._cancel_flags.get(session.session_id):
                     return ToolResult(success=False, error="cancelled")
-                updated = self.permissions._pending.get(req.request_id)
-                if updated is None:
-                    pending = self.permissions.get_pending(session.session_id)
-                    still = [p for p in pending if p.request_id == req.request_id]
-                    if not still:
-                        break
-                else:
-                    continue
-            final_req = None
-            for candidate in self.permissions.get_pending(session.session_id):
-                if candidate.request_id == req.request_id:
-                    final_req = candidate
+                pending = self.permissions.get_pending(session.session_id)
+                still = [p for p in pending if p.request_id == req.request_id]
+                if not still:
                     break
-            if final_req and final_req.decision == PermissionDecision.PENDING:
+            final_pending = [p for p in self.permissions.get_pending(session.session_id) if p.request_id == req.request_id]
+            if final_pending and final_pending[0].decision == PermissionDecision.PENDING:
                 self.permissions.decide(req.request_id, PermissionDecision.DENIED)
                 return ToolResult(success=False, error="permission timed out")
-            if final_req and final_req.decision == PermissionDecision.DENIED:
+            if final_pending and final_pending[0].decision == PermissionDecision.DENIED:
                 return ToolResult(success=False, error="permission denied")
 
         self._emit(session.session_id, EventType.TOOL_STARTED, agent.agent_id, agent.task_id, tool_name)
