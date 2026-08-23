@@ -20,9 +20,16 @@ providers:
     base_url: https://api.groq.com/openai/v1
   gemini:
     default_model: gemini-2.0-flash
+    base_url: https://generativelanguage.googleapis.com/v1beta
   openai:
     default_model: gpt-4o-mini
+    base_url: https://api.openai.com/v1
   opencode:
-    base_url: http://localhost:3000/v1
+    default_model: big-pickle
+    base_url: https://opencode.ai/inference/openai/v1
   zen:
-    base_url: http://localhost:8080/v1
+    default_model: glm-4.6
+    base_url: https://opencode.ai/zen/v1
+  openai_compatible:
+    default_model: ""
+    base_url: ""
