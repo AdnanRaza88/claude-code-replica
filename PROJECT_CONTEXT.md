@@ -39,9 +39,10 @@ User prompt (Streamlit)
   → AgentRuntime
        spawn AgentState per task
        if children → asyncio.gather parallel
-       else leaf → provider.invoke + optional tools
+       else leaf → **CognitiveLoop harness** (Think→Reason→Act→Observe→Verify)
+                   fallback: legacy single-shot provider.invoke + tools
   → PermissionService on every tool call
-  → EventService (created/started/tool_*/completed/failed)
+  → EventService (created/started/thinking/reasoning/tool_*/completed/failed)
   → UI: chat + agent tree + events + permission panel
 ```
 
@@ -51,7 +52,11 @@ User prompt (Streamlit)
 |------|------|
 | `app.py` | Streamlit shell, credentials, model picker, chat, tree |
 | `src/orchestration/planner.py` | Domain keywords, graph build |
-| `src/orchestration/runtime.py` | Spawn, execute, children, tools, cancel |
+| `src/orchestration/runtime.py` | Spawn, execute, children, tools, cancel; leaf path prefers harness |
+| `src/harness/` | Per-agent isolated cognitive sandbox + CognitiveLoop |
+| `src/harness/sandbox.py` | `AgentSandbox`, `SandboxRegistry` (no shared state across agents) |
+| `src/harness/loop.py` | Think → Reason → Act → Observe → Verify loop |
+| `src/harness/types.py` | `Phase`, `StepKind`, `SandboxStep`, `SandboxTrace` |
 | `src/models/agent.py` | `AgentState`, `BudgetState`, status enum |
 | `src/models/task.py` | `Task`, `TaskGraph`, deps, ready_tasks |
 | `src/models/provider.py` | Messages, ProviderConfig, ToolSpec |
@@ -77,77 +82,12 @@ Simple prompts → one domain agent. Multi-keyword / long objectives → root **
 ## Providers (important)
 
 - Single provider/model per session; all agents inherit it.
-- **OpenCode Zen** base: `https://opencode.ai/zen/v1`  
-- **OpenCode Inference** base: `https://opencode.ai/inference/openai/v1`  
-- Deprecated / broken model IDs: `glm-4.6`, old `kimi-k2` alone — use live IDs (`big-pickle`, `glm-5.2`, `kimi-k2.7-code`, free `*-free` models).
-- UI: Provider select → Base URL → API key → **Fetch models** or presets → Model selectbox.
-- Client: `OpenAICompatibleProvider` → `/chat/completions` + `/models`.
+- **OpenCode Zen** base: `https://opencode.ai/zen/v1`
 
-## Harness (what exists)
+## Harness (2026-08-24)
 
-- Budgets: depth, children, tokens, wall-clock, spawn remaining  
-- Permissions: no silent tool execution  
-- Events: observability for tree + sidebar  
-- Cancel flag propagates per session  
-- Context packs: avoid dumping full source into every agent  
-
-## What to build next (if extending multi-agent / graph / automation)
-
-**Do**
-
-1. Expand **domain registry** (prompts + tool allowlists + skills) toward ~18 PRD domains — still dynamic spawn, not fixed 50 processes.
-2. Upgrade **Planner** to LLM-assisted decomposition (structured JSON tasks) with keyword fallback.
-3. Add **verification** phase: independent checks (correctness / security / coverage) as optional child or post-step.
-4. Harden **permission wait** (UI-driven resume, no fragile poll timeouts).
-5. Optional **LangGraph** (or similar) only if durable checkpoints / human-in-the-loop barriers are required for production.
-6. Automations: session-level scheduled/re-run tasks only if product needs them; keep inside Streamlit constraints (no long daemons on Streamlit Cloud).
-7. Keep **human-written style**: simple professional code, **no comments spam, no emojis, no AI-flavored noise**.
-8. Push to GitHub as you go (`AdnanRaza88/claude-code-replica`).
-
-**Do not**
-
-1. Hard-code 50 always-on agents or a permanent swarm.
-2. Inject full `claude-code-fable` / giant source into every agent prompt.
-3. Bypass permission service for tools.
-4. Mix multiple LLM providers in one session (single-provider invariant).
-5. Use deprecated Zen model IDs (`glm-4.6`, etc.).
-6. Add heavy infra (Redis, workers, always-on processes) unless leaving Streamlit Cloud constraints on purpose.
-7. Replace the whole runtime casually without keeping Task / AgentState / result contract shapes stable.
-
-## Result contract (keep stable)
-
-Child/parent results should stay:
-
-```json
-{
-  "status": "success|partial|failed",
-  "summary": "...",
-  "artifacts": [],
-  "findings": [],
-  "open_questions": [],
-  "verification": {}
-}
-```
-
-## Run / test locally
-
-```bash
-cd /home/workdir/artifacts/claude-code-replica
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-Sidebar: pick **OpenCode Zen**, URL `https://opencode.ai/zen/v1`, API key, model `big-pickle` or `glm-5.2` (not `glm-4.6`).
-
-## Spec sources (attachments / knowledge)
-
-Original intent lives in uploaded specs (PRD, TRD, orchestration_spec, context_partitioning, provider_connector_spec, implementation_plan). Runtime behavior must stay aligned with:
-
-- Task graph, not fixed swarm  
-- Dynamic spawn policy + budgets  
-- Permission barrier on tools  
-- Compact context packs  
-
-## One-line summary for a new chat
-
-> Continue **claude-code-replica** (Streamlit multi-agent coding workspace). Repo `AdnanRaza88/claude-code-replica`. Runtime is hierarchical **TaskGraph + AgentRuntime** with thin keyword planner (7 domains), permission harness, and OpenAI-compatible providers (Zen/OpenCode fixed). Do not build 50 fixed agents; extend domain coverage, LLM planner, verification, and graph quality while keeping budgets, single-provider session, and permission gates.
+Per-agent isolated cognitive sandbox inspired by DeepSeek Harness scoped context:
+- `AgentSandbox` — private trace, scratch, notes, tool allowlist (never shared across agents)
+- `CognitiveLoop` — Think → Reason → Act → Observe → Verify with step budget (max 8)
+- Leaf agents use harness by default; on any harness error, runtime falls back to legacy `_run_leaf`
+- Events: THINKING / REASONING / TOOL_* / SOURCE_FOUND / COMPLETED remain compatible with Streamlit UI
