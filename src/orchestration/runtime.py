@@ -387,11 +387,14 @@ class AgentRuntime:
         if tool_names:
             tool_hint = (
                 f"\nAvailable tools: {', '.join(tool_names)}.\n"
+                "CRITICAL: For news, today's date, current events, Google updates, or any live web fact "
+                "you MUST call tool 'web_search' first (then 'web_fetch' on a useful URL). "
+                "Do NOT use bash to explore the sandbox for internet questions. "
+                "Do NOT invent headlines, dates, or URLs.\n"
                 "For GitHub profile/repos/bio use tool 'github' (get_user, list_repos).\n"
-                "For current public facts use 'web_search' then 'web_fetch' — do not invent URLs or facts.\n"
-                "For live browser pages use 'pinchtab' (health, navigate, snapshot, text, action with refs e0/e1).\n"
-                "Always cite sources briefly (title + URL) when you used search/fetch/github/pinchtab.\n"
-                "Start with a short reasoning line about which tools/domain you will use."
+                "For live interactive browser pages only, use 'pinchtab' if available.\n"
+                "Always cite sources briefly (title + URL) when you used search/fetch/github.\n"
+                "Start with a short reasoning line about which tools you will use, then call the tool."
             )
         messages = [
             Message(role="system", content=system + tool_hint),
