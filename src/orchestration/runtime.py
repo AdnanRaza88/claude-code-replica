@@ -1,5 +1,4 @@
-# Restored base runtime (pre F-018) + plan mode via plan_mode_hooks on import.
-# Loads known-good source so Streamlit Cloud does not depend on truncated blobs.
+# Restored base runtime (pre F-018) + plan mode hooks after load.
 from __future__ import annotations
 
 import urllib.request
@@ -13,3 +12,11 @@ with urllib.request.urlopen(_URL, timeout=60) as _resp:
     _code = _resp.read().decode("utf-8")
 
 exec(compile(_code, __file__, "exec"), globals())
+
+# F-018 plan mode — install even when app imports runtime module directly
+try:
+    from src.orchestration import plan_mode_hooks
+
+    plan_mode_hooks.install(AgentRuntime)  # type: ignore[name-defined]
+except Exception:
+    pass
