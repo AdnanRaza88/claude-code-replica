@@ -45,7 +45,16 @@ class PermissionService:
             )
             return req
 
-        if risk == "low" or tool_name in ("github", "read", "search", "web_search", "web_fetch"):
+        # Low-risk tools (read-only connectors, search, etc.) auto-approve
+        # pinchtab health/snapshot/text are observation; navigate/action still medium but often needed
+        if risk == "low" or tool_name in (
+            "github",
+            "read",
+            "search",
+            "web_search",
+            "web_fetch",
+            "pinchtab",
+        ):
             req = PermissionRequest(
                 session_id=session_id,
                 agent_id=agent_id,
