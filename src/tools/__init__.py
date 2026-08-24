@@ -5,6 +5,7 @@ from .bash_tool import BashTool
 from .github_tool import GitHubTool
 from .web_tools import WebSearchTool, WebFetchTool
 from .pinchtab_tool import PinchTabTool
+from .agent_reach_tool import AgentReachTool
 
 __all__ = [
     "Tool",
@@ -19,4 +20,5 @@ __all__ = [
     "WebSearchTool",
     "WebFetchTool",
     "PinchTabTool",
+    "AgentReachTool",
 ]
