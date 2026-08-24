@@ -22,6 +22,13 @@ try:
 except Exception:  # pragma: no cover
     SkillService = None  # type: ignore
 
+try:
+    from src.harness import AgentSandbox, SandboxRegistry, CognitiveLoop
+except Exception:  # pragma: no cover
+    AgentSandbox = None  # type: ignore
+    SandboxRegistry = None  # type: ignore
+    CognitiveLoop = None  # type: ignore
+
 
 class AgentRuntime:
     def __init__(
@@ -34,6 +41,7 @@ class AgentRuntime:
         tool_registry: ToolRegistry,
         get_credential: Optional[Callable[[str], Optional[str]]] = None,
         skill_service=None,
+        use_harness: bool = True,
     ):
         self.sessions = session_service
         self.permissions = permission_service
@@ -42,6 +50,7 @@ class AgentRuntime:
         self.providers = provider_registry
         self.tools = tool_registry
         self.get_credential = get_credential or (lambda _: None)
+        self.use_harness = use_harness and CognitiveLoop is not None
 
         if skill_service is not None:
             self.skills = skill_service
@@ -65,6 +74,7 @@ class AgentRuntime:
         self._agents: dict[str, AgentState] = {}
         self._graphs: dict[str, TaskGraph] = {}
         self._cancel_flags: dict[str, bool] = {}
+        self._sandboxes = SandboxRegistry() if SandboxRegistry is not None else None
 
     def _emit(
         self,
@@ -182,6 +192,18 @@ class AgentRuntime:
         if children and agent.can_spawn():
             return await self._run_with_children(session, agent, task, graph, children, project_context)
 
+        if self.use_harness and self._sandboxes is not None:
+            try:
+                return await self._run_leaf_harness(session, agent, task, pack)
+            except Exception as e:
+                self._emit(
+                    session.session_id,
+                    EventType.RECOVERY,
+                    agent.agent_id,
+                    task.task_id,
+                    f"harness fallback: {e}",
+                    {"error": str(e)},
+                )
         return await self._run_leaf(session, agent, task, pack)
 
     async def _run_with_children(
@@ -248,6 +270,103 @@ class AgentRuntime:
         task.status = TaskStatus.SUCCEEDED if status == "success" else TaskStatus.PARTIAL
         task.result = final
         self._emit(session.session_id, EventType.COMPLETED, agent.agent_id, task.task_id, final["summary"][:200])
+        return final
+
+    async def _run_leaf_harness(
+        self,
+        session: SessionState,
+        agent: AgentState,
+        task: Task,
+        pack,
+    ) -> dict[str, Any]:
+        """Per-agent isolated cognitive sandbox (Think → Reason → Act → Observe → Verify)."""
+        config = session.provider_config
+        assert config is not None
+        api_key = self.get_credential(config.credential_ref or config.provider)
+        provider = self.providers.create(config, api_key)
+
+        system = pack.to_prompt_block()
+        tool_specs = [
+            ToolSpec(name=t["name"], description=t["description"], parameters=t.get("parameters", {}))
+            for t in (pack.tool_contracts or [])
+        ]
+
+        assert self._sandboxes is not None
+        sandbox = self._sandboxes.create(
+            agent_id=agent.agent_id,
+            session_id=session.session_id,
+            domain=agent.domain,
+            objective=task.objective,
+            role=agent.role,
+            depth=agent.depth,
+            allowed_tools=list(agent.allowed_tools or []),
+            skill_refs=list(agent.skill_refs or []),
+            max_steps=8,
+            enable_verify=True,
+        )
+        agent.context_refs = list(pack.metadata.get("context_refs") or [])
+
+        def emit(event_type, message: str = "", payload: dict | None = None):
+            self._emit(
+                session.session_id,
+                event_type,
+                agent.agent_id,
+                task.task_id,
+                message,
+                payload or {},
+            )
+
+        async def invoke_provider(messages, model, tools=None, temperature=0.3, max_tokens=2048):
+            return await provider.invoke(
+                messages,
+                model=model,
+                tools=tools,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+
+        async def invoke_tool(name: str, args: dict):
+            return await self._invoke_tool(session, agent, name, args)
+
+        loop = CognitiveLoop(
+            sandbox=sandbox,
+            invoke_provider=invoke_provider,
+            invoke_tool=invoke_tool,
+            emit=emit,
+            model=config.model,
+            temperature=config.temperature,
+            max_tokens=min(config.max_tokens or 2048, 3072),
+            tool_specs=tool_specs,
+            system_prompt=system,
+        )
+
+        if self._cancel_flags.get(session.session_id):
+            sandbox.cancelled = True
+            agent.status = AgentStatus.CANCELLED
+            task.status = TaskStatus.CANCELLED
+            return {"status": "cancelled", "summary": "cancelled", "artifacts": [], "findings": [], "open_questions": [], "verification": {}}
+
+        final = await loop.run()
+        status = final.get("status", "success")
+        summary = final.get("summary") or ""
+
+        agent.status = (
+            AgentStatus.SUCCEEDED
+            if status == "success"
+            else AgentStatus.PARTIAL
+            if status == "partial"
+            else AgentStatus.FAILED
+        )
+        agent.result_summary = summary
+        task.status = (
+            TaskStatus.SUCCEEDED
+            if status == "success"
+            else TaskStatus.PARTIAL
+            if status == "partial"
+            else TaskStatus.FAILED
+        )
+        task.result = final
+        self._emit(session.session_id, EventType.COMPLETED, agent.agent_id, task.task_id, summary[:200])
         return final
 
     async def _run_leaf(
@@ -474,6 +593,11 @@ class AgentRuntime:
     def cancel(self, session_id: str) -> None:
         self._cancel_flags[session_id] = True
         self.sessions.cancel(session_id)
+        if self._sandboxes is not None:
+            for aid, sb in list(getattr(self._sandboxes, "_by_agent", {}).items()):
+                if sb.session_id == session_id:
+                    sb.cancelled = True
+            self._sandboxes.clear_session(session_id)
 
     def get_agent_tree(self, session_id: str) -> list[dict]:
         agents = [a for a in self._agents.values() if a.session_id == session_id]
