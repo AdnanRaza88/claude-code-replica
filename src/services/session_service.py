@@ -53,6 +53,13 @@ class SessionService:
         session.mode = mode if mode in ("agent", "plan") else "agent"
         return session
 
+    def set_project_root(self, session_id: str, root: str) -> SessionState | None:
+        session = self._sessions.get(session_id)
+        if session is None:
+            return None
+        session.project_root = root
+        return session
+
     def set_last_plan(self, session_id: str, plan: dict[str, Any] | str) -> None:
         session = self._sessions.get(session_id)
         if session is None:
