@@ -31,11 +31,19 @@ class BashTool(Tool):
             for b in self.blocked:
                 if b in cmd:
                     return ToolResult(success=False, error="command blocked by policy")
-            cwd = self.root
-            if data.cwd:
-                cwd = (self.root / data.cwd).resolve()
-                if not str(cwd).startswith(str(self.root.resolve())):
+            cwd = self.root.resolve()
+            if data.cwd and str(data.cwd).strip().lower() not in ("", "none", "null", "."):
+                candidate = (self.root / data.cwd).resolve()
+                if not str(candidate).startswith(str(self.root.resolve())):
                     return ToolResult(success=False, error="cwd outside workspace")
+                if not candidate.exists() or not candidate.is_dir():
+                    return ToolResult(
+                        success=False,
+                        error=f"cwd does not exist: {data.cwd}",
+                    )
+                cwd = candidate
+            if not cwd.exists() or not cwd.is_dir():
+                cwd = Path.cwd()
             proc = await asyncio.create_subprocess_shell(
                 cmd,
                 cwd=str(cwd),
