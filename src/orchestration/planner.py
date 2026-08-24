@@ -4,7 +4,6 @@ import re
 from src.models.task import Task, TaskGraph
 
 
-# Domain → keywords for lightweight detection (LLM planner can replace later)
 DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "orchestrator": ["orchestrate", "coordinate agents", "multi agent", "kitne agents", "how many agents"],
     "research": ["explore", "research", "find where", "locate", "investigate", "how does", "search codebase"],
@@ -26,7 +25,6 @@ DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "planning": ["plan", "architecture", "design the system", "decompose", "roadmap"],
 }
 
-# Primary skill id per domain (matches skills/<domain>/SKILL.md)
 DOMAIN_PRIMARY_SKILL: dict[str, str] = {
     "orchestrator": "orchestrator/orchestrator",
     "research": "research/research",
@@ -45,14 +43,13 @@ DOMAIN_PRIMARY_SKILL: dict[str, str] = {
     "general": "general/general",
 }
 
-# Default tool allowlist per domain (permission service still gates)
 DOMAIN_TOOLS: dict[str, list[str]] = {
-    "orchestrator": ["read", "search", "github"],
-    "research": ["read", "search", "bash", "github"],
+    "orchestrator": ["read", "search", "github", "web_search", "web_fetch"],
+    "research": ["read", "search", "bash", "github", "web_search", "web_fetch"],
     "implementation": ["read", "write", "edit", "search", "bash"],
-    "code-review": ["read", "search", "github"],
+    "code-review": ["read", "search", "github", "web_search"],
     "testing": ["read", "write", "edit", "search", "bash"],
-    "git": ["bash", "read", "search", "github"],
+    "git": ["bash", "read", "search", "github", "web_search"],
     "frontend": ["read", "write", "edit", "search", "bash"],
     "backend": ["read", "write", "edit", "search", "bash"],
     "security": ["read", "search", "bash"],
@@ -61,7 +58,7 @@ DOMAIN_TOOLS: dict[str, list[str]] = {
     "tools": ["bash", "read", "search"],
     "memory": ["read", "write", "edit", "search"],
     "planning": ["read", "search"],
-    "general": ["read", "write", "edit", "search", "bash", "github"],
+    "general": ["read", "write", "edit", "search", "bash", "github", "web_search", "web_fetch"],
 }
 
 
@@ -77,7 +74,6 @@ class Planner:
                 found.append(domain)
         if not found:
             found.append("general")
-        # de-dupe preserve order
         seen = set()
         ordered = []
         for d in found:
@@ -99,7 +95,6 @@ class Planner:
         graph = TaskGraph(session_id=session_id)
         domains = self.detect_domains(objective)
 
-        # Root is always orchestrator/planning when multi-domain or complex
         root_domain = "orchestrator" if (len(domains) > 1 or self._should_split(objective)) else domains[0]
         root = Task(
             objective=objective,
