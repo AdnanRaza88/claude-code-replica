@@ -19,6 +19,7 @@ from src.tools.file_tools import ReadTool, WriteTool, EditTool
 from src.tools.search_tools import ProjectSearchTool
 from src.tools.bash_tool import BashTool
 from src.tools.github_tool import GitHubTool
+from src.tools.web_tools import WebSearchTool, WebFetchTool
 from src.orchestration.runtime import AgentRuntime
 
 
@@ -143,10 +144,16 @@ def get_services():
             return st.session_state.get("credentials", {}).get("github")
 
         tool_reg.register(GitHubTool(get_token=_gh_token))
+        tool_reg.register(WebSearchTool())
+        tool_reg.register(WebFetchTool())
 
         source = Path(__file__).resolve().parent / "knowledge" / "source_headings.md"
         if source.exists():
             ctx_svc.load_source(source)
+        knowledge_dir = Path(__file__).resolve().parent / "knowledge" / "claude_code"
+        if knowledge_dir.exists() and hasattr(ctx_svc, "load_knowledge_dir"):
+            n = ctx_svc.load_knowledge_dir(knowledge_dir)
+            st.session_state.knowledge_chunks = n
 
         def get_cred(ref):
             if not ref:
@@ -275,26 +282,36 @@ def main():
         base_url = st.text_input(
             "Base URL",
             value=st.session_state.base_url_by_provider.get(provider, default_url),
-            help="Must end with /v1 for OpenAI-compatible providers",
+            help="Must end with /v1 for OpenAI-compatible providers. Ollama: same machine = localhost, Streamlit Cloud = ngrok URL.",
             key=f"base_url_{provider}",
         )
         st.session_state.base_url_by_provider[provider] = base_url
+
+        if provider == "ollama":
+            st.info(
+                "Ollama: Base URL must reach **your** Ollama process. "
+                "`localhost` only works if Streamlit runs on the same machine. "
+                "On Streamlit Cloud use ngrok URL like `https://xxxx.ngrok.io/v1`."
+            )
 
         api_key = st.text_input(
             "API key / token",
             type="password",
             value=st.session_state.credentials.get(provider, ""),
-            help="Required for OpenCode, Zen, Groq, OpenAI, Gemini",
+            help="Not required for Ollama. Required for OpenCode, Zen, Groq, OpenAI, Gemini.",
             key=f"api_key_{provider}",
+            disabled=(provider == "ollama"),
         )
         if api_key:
             st.session_state.credentials[provider] = api_key
+        if provider == "ollama":
+            st.session_state.credentials["ollama"] = st.session_state.credentials.get("ollama") or "ollama"
 
         fallback = services["providers"].fallback_models(provider)
         fetched = st.session_state.fetched_models.get(provider) or []
         model_options = fetched if fetched else fallback
 
-        col_a, col_b = st.columns([1, 1])
+        col_a, col_b, col_c = st.columns([1, 1, 1])
         with col_a:
             if st.button("Fetch models", use_container_width=True):
                 if not base_url.strip():
@@ -306,7 +323,7 @@ def main():
                                 services,
                                 provider,
                                 base_url.strip(),
-                                st.session_state.credentials.get(provider),
+                                st.session_state.credentials.get(provider) or ("ollama" if provider == "ollama" else None),
                             )
                         )
                         if asyncio.isfuture(models):
@@ -316,9 +333,7 @@ def main():
                             st.session_state.model_fetch_error = ""
                             st.success(f"{len(models)} models loaded")
                         else:
-                            st.session_state.model_fetch_error = (
-                                "No models returned. Check base URL and API key."
-                            )
+                            st.session_state.model_fetch_error = "No models returned. Check base URL and API key."
                     except Exception as e:
                         st.session_state.model_fetch_error = str(e)[:300]
         with col_b:
@@ -326,6 +341,32 @@ def main():
                 st.session_state.fetched_models[provider] = []
                 st.session_state.model_fetch_error = ""
                 st.rerun()
+        with col_c:
+            if st.button("Test connection", use_container_width=True):
+                try:
+                    cfg_key = st.session_state.credentials.get(provider) or ("ollama" if provider == "ollama" else None)
+                    _cfg = ProviderConfig(provider=provider, model="probe", base_url=base_url.strip() or None, credential_ref=provider)
+                    client = services["providers"].create(_cfg, cfg_key)
+                    if hasattr(client, "ping"):
+                        result = run_async(client.ping())
+                        if hasattr(result, "__await__") or asyncio.isfuture(result):
+                            st.session_state.model_fetch_error = "Could not run ping in this context"
+                        elif result.get("ok"):
+                            st.session_state.fetched_models[provider] = result.get("models") or []
+                            st.session_state.model_fetch_error = ""
+                            st.success(result.get("message") or "Connected")
+                        else:
+                            st.session_state.model_fetch_error = result.get("message") or "Connection failed"
+                    else:
+                        models = run_async(client.list_models())
+                        if models:
+                            st.session_state.fetched_models[provider] = models
+                            st.session_state.model_fetch_error = ""
+                            st.success(f"OK · {len(models)} models")
+                        else:
+                            st.session_state.model_fetch_error = "Connected but no models returned"
+                except Exception as e:
+                    st.session_state.model_fetch_error = str(e)[:400]
 
         if st.session_state.model_fetch_error:
             st.warning(st.session_state.model_fetch_error)
@@ -349,7 +390,7 @@ def main():
             "Permission mode",
             ["ask", "session_allow", "deny"],
             index=1,
-            help="session_allow auto-approves tools after first approval. Low-risk tools (github, read, search) always auto-approve.",
+            help="session_allow auto-approves tools after first approval. Low-risk tools always auto-approve.",
         )
         st.selectbox("Mode", ["agent", "plan"], index=0)
 
@@ -364,14 +405,14 @@ def main():
             "GitHub token",
             type="password",
             value=st.session_state.credentials.get("github", ""),
-            help="Personal access token with repo + read:user scopes. Enables github tool.",
+            help="Personal access token with repo + read:user scopes.",
             key="gh_token_input",
         )
         if gh:
             st.session_state.credentials["github"] = gh
             st.caption("GitHub connected")
         else:
-            st.caption("No GitHub token — github tool will report missing credentials")
+            st.caption("No GitHub token")
 
         if services.get("skills"):
             skill_count = len(getattr(services["skills"], "_skills", {}) or {})
@@ -448,8 +489,30 @@ def main():
                 st.session_state.messages.append({"role": "assistant", "content": reply})
 
     with col_side:
-        st.markdown('<div class="section-label">Agent tree</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">Multi-agent system</div>', unsafe_allow_html=True)
+        st.caption(
+            "Root **orchestrator** splits work → specialist children "
+            "(git, code-review, implementation, …) run → results merge."
+        )
+        domains_avail = [
+            "orchestrator", "general", "git", "code-review", "implementation",
+            "testing", "research", "frontend", "backend", "security", "docs",
+        ]
+        st.markdown(
+            "<div class='event-line'>" + " · ".join(domains_avail) + "</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown('<div class="section-label" style="margin-top:0.75rem">Agent tree</div>', unsafe_allow_html=True)
         tree = services["runtime"].get_agent_tree(session.session_id)
+        active = [n for n in tree if n.get("status") in ("running", "waiting_children", "waiting_permission")]
+        if active:
+            a = active[0]
+            st.markdown(
+                f'<div class="agent-node running"><strong>▶ Active now:</strong> {a["domain"]} · {a["status"]}<br/>'
+                f'<span style="opacity:0.75">{a["objective"]}</span></div>',
+                unsafe_allow_html=True,
+            )
         if tree:
             for node in tree:
                 indent = "&nbsp;" * (node["depth"] * 4)
@@ -464,17 +527,40 @@ def main():
                     unsafe_allow_html=True,
                 )
         else:
-            st.caption("No agents yet — send a task to spawn the tree")
+            st.caption("No agents yet — send a multi-domain task to spawn the tree")
+
+        st.markdown('<div class="section-label" style="margin-top:1rem">Reasoning</div>', unsafe_allow_html=True)
+        events = services["event"].list_events(session.session_id, limit=40)
+        thinking = [e for e in events if e.event_type.value in ("thinking", "reasoning")]
+        if thinking:
+            for ev in thinking[-6:]:
+                st.markdown(
+                    f'<div class="event-line">💭 {ev.message[:120]}</div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.caption("Reasoning appears when agents run")
+
+        st.markdown('<div class="section-label" style="margin-top:1rem">Sources</div>', unsafe_allow_html=True)
+        sources = [e for e in events if e.event_type.value == "source_found"]
+        if sources:
+            for ev in sources[-6:]:
+                url = (ev.payload or {}).get("url") or ""
+                title = ev.message[:80]
+                if url:
+                    st.markdown(f'<div class="event-line">🔗 <a href="{url}" target="_blank">{title}</a></div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div class="event-line">🔗 {title}</div>', unsafe_allow_html=True)
+        else:
+            st.caption("Sources from web_search / github appear here")
 
         st.markdown('<div class="section-label" style="margin-top:1rem">Events</div>', unsafe_allow_html=True)
-        events = services["event"].list_events(session.session_id, limit=30)
-        for ev in reversed(events[-12:]):
+        for ev in reversed(events[-10:]):
             st.markdown(
                 f'<div class="event-line">{ev.event_type.value}: {ev.message[:90]}</div>',
                 unsafe_allow_html=True,
             )
 
-        st.markdown("")
         if st.button("Cancel session", use_container_width=True):
             services["runtime"].cancel(session.session_id)
             st.warning("Cancellation requested")
