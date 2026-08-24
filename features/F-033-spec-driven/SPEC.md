@@ -1,6 +1,6 @@
 # F-033 — Spec-driven pipeline
 
-**Status:** todo  
+**Status:** done (engine + skills)  
 **Phase:** B1  
 
 ## Description
@@ -27,10 +27,11 @@ Before implementation agents run, produce Intent → PRD-lite → TRD-lite → t
 
 ## Touch
 
+- `src/services/spec_service.py`  
 - `src/orchestration/planner.py`  
-- `src/orchestration/runtime.py`  
-- plan mode F-018  
+- `src/orchestration/plan_mode_hooks.py`  
+- `skills/sdd/`, `skills/planning/`, `skills/orchestrator/`  
 
 ## Done note
 
-_(empty)_
+SpecService templates + lock gate; Planner plan/strict SDD routing to planning+sdd skill; plan mode allows write only under .agentforge/specs; skills teach contract-first agentic coding.

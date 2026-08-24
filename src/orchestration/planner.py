@@ -4,8 +4,6 @@ import re
 from src.models.task import Task, TaskGraph
 
 
-# Domain → keywords for lightweight detection (LLM planner can replace later)
-# Prefer multi-word / distinctive phrases. Short tokens use word-boundary match in detect_domains.
 DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "orchestrator": ["orchestrate", "coordinate agents", "multi agent", "kitne agents", "how many agents"],
     "research": [
@@ -32,16 +30,18 @@ DOMAIN_KEYWORDS: dict[str, list[str]] = {
     ],
     "tools": ["run command", "bash", "shell", "execute", "terminal"],
     "memory": ["remember", "memory", "persist fact", "forget"],
-    "planning": ["plan", "architecture", "design the system", "decompose", "roadmap"],
+    "planning": [
+        "plan", "architecture", "design the system", "decompose", "roadmap",
+        "spec", "prd", "trd", "sdd", "spec driven", "spec-driven", "acceptance criteria",
+        "write a prd", "product requirements", "task waves", "project bible",
+    ],
 }
 
-# Short tokens that must match as whole words (avoid "test" inside "latest")
 _WORD_BOUNDARY_KEYWORDS: dict[str, list[str]] = {
     "testing": ["test", "tests", "spec", "specs"],
     "git": ["git"],
 }
 
-# Primary skill id per domain (matches skills/<domain>/SKILL.md)
 DOMAIN_PRIMARY_SKILL: dict[str, str] = {
     "orchestrator": "orchestrator/orchestrator",
     "research": "research/research",
@@ -56,12 +56,10 @@ DOMAIN_PRIMARY_SKILL: dict[str, str] = {
     "browser": "browser/browser",
     "tools": "tools/tools",
     "memory": "memory/memory",
-    "planning": "orchestrator/orchestrator",
+    "planning": "sdd/sdd",
     "general": "general/general",
 }
 
-# Default tool allowlist per domain (permission service still gates)
-# web_search / web_fetch available on any domain that might need current facts
 DOMAIN_TOOLS: dict[str, list[str]] = {
     "orchestrator": ["read", "search", "github", "web_search", "web_fetch", "pinchtab"],
     "research": ["web_search", "web_fetch", "read", "search", "bash", "github", "pinchtab"],
@@ -76,14 +74,19 @@ DOMAIN_TOOLS: dict[str, list[str]] = {
     "browser": ["web_search", "web_fetch", "pinchtab", "bash", "read", "search"],
     "tools": ["bash", "read", "search", "web_search"],
     "memory": ["read", "write", "edit", "search"],
-    "planning": ["read", "search", "web_search"],
+    "planning": ["read", "search", "web_search", "write", "edit"],
     "general": ["web_search", "web_fetch", "read", "write", "edit", "search", "bash", "github", "pinchtab"],
 }
 
+IMPLEMENTATION_DOMAINS = frozenset(
+    {"implementation", "frontend", "backend", "testing"}
+)
+
 
 class Planner:
-    def __init__(self, skill_service=None):
+    def __init__(self, skill_service=None, strict_sdd: bool = True):
         self.skill_service = skill_service
+        self.strict_sdd = strict_sdd
 
     def detect_domains(self, objective: str) -> list[str]:
         text = objective.lower()
@@ -91,7 +94,6 @@ class Planner:
         for domain, kws in DOMAIN_KEYWORDS.items():
             if any(k in text for k in kws):
                 found.append(domain)
-        # Whole-word matches for short tokens (e.g. "test" must not match "latest")
         for domain, words in _WORD_BOUNDARY_KEYWORDS.items():
             for w in words:
                 if re.search(rf"(?<![a-z0-9]){re.escape(w)}(?![a-z0-9])", text):
@@ -100,7 +102,6 @@ class Planner:
                     break
         if not found:
             found.append("general")
-        # Prefer research when the query is clearly about live web / news / date
         research_signals = (
             "internet", "news", "browse", "web search", "online", "latest update",
             "aaj ki date", "today", "google", "headlines", "current",
@@ -109,7 +110,6 @@ class Planner:
             found.insert(0, "research")
         elif any(s in text for s in research_signals) and "research" in found:
             found = ["research"] + [d for d in found if d != "research"]
-        # de-dupe preserve order
         seen = set()
         ordered = []
         for d in found:
@@ -118,8 +118,26 @@ class Planner:
                 ordered.append(d)
         return ordered
 
+    def is_spec_request(self, objective: str) -> bool:
+        text = objective.lower()
+        signals = (
+            "write a prd", "prd-lite", "trd-lite", "spec driven", "spec-driven",
+            "create specs", "spec pipeline", "acceptance criteria", "project bible",
+            "task waves", "plan mode", "produce a plan", "design the system",
+        )
+        return any(s in text for s in signals)
+
+    def is_build_request(self, objective: str) -> bool:
+        text = objective.lower()
+        if self.is_spec_request(objective):
+            return False
+        build = ("implement", "build", "add feature", "write code", "create app", "ship")
+        return any(b in text for b in build)
+
     def _skill_for(self, domain: str) -> list[str]:
         sid = DOMAIN_PRIMARY_SKILL.get(domain)
+        if domain == "planning":
+            return ["sdd/sdd", "planning/planning"]
         if sid:
             return [sid]
         return []
@@ -127,11 +145,34 @@ class Planner:
     def _tools_for(self, domain: str) -> list[str]:
         return list(DOMAIN_TOOLS.get(domain, DOMAIN_TOOLS["general"]))
 
-    def create_graph(self, session_id: str, objective: str) -> TaskGraph:
+    def create_graph(
+        self,
+        session_id: str,
+        objective: str,
+        *,
+        mode: str = "agent",
+        specs_locked: bool = False,
+    ) -> TaskGraph:
         graph = TaskGraph(session_id=session_id)
         domains = self.detect_domains(objective)
 
-        # Root is always orchestrator/planning when multi-domain or complex
+        # Plan mode or explicit SDD request → planning root, no implementation children
+        if mode == "plan" or self.is_spec_request(objective):
+            return self._spec_graph(graph, objective)
+
+        # Strict SDD: build without locked specs → planning first, not parallel code
+        if (
+            self.strict_sdd
+            and self.is_build_request(objective)
+            and not specs_locked
+            and any(d in IMPLEMENTATION_DOMAINS for d in domains)
+        ):
+            return self._spec_graph(
+                graph,
+                objective,
+                note="SDD gate: specs/bible not locked — produce Intent/PRD/TRD/WAVES/BIBLE first",
+            )
+
         root_domain = "orchestrator" if (len(domains) > 1 or self._should_split(objective)) else domains[0]
         root = Task(
             objective=objective,
@@ -159,6 +200,24 @@ class Planner:
                 graph.add_task(child)
                 graph.add_dependency(root.task_id, child.task_id)
 
+        return graph
+
+    def _spec_graph(self, graph: TaskGraph, objective: str, note: str = "") -> TaskGraph:
+        obj = objective
+        if note:
+            obj = f"{objective}\n\n[{note}]"
+        root = Task(
+            objective=obj,
+            domain="planning",
+            expected_output=(
+                "Intent, PRD-lite, TRD-lite, task waves, bible under .agentforge/specs/; "
+                "open questions; do not implement features yet"
+            ),
+            verification_strategy="specs_present",
+            required_skills=self._skill_for("planning"),
+            required_tools=self._tools_for("planning"),
+        )
+        graph.add_task(root)
         return graph
 
     def _should_split(self, objective: str) -> bool:
