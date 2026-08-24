@@ -1,6 +1,6 @@
 # F-020 — Project memory (CLAUDE.md-style)
 
-**Status:** todo  
+**Status:** done  
 **Phase:** A3  
 
 ## Description
@@ -21,8 +21,9 @@ Load project instruction files (`CLAUDE.md`, `AGENTS.md`, or `.agentforge/memory
 ## Touch
 
 - `src/services/context_service.py`  
+- `src/models/context.py`  
 - Session `project_root`  
 
 ## Done note
 
-_(empty)_
+Engine: ContextService.load_project_memory + inject into ContextPack.to_prompt_block; first-hit CLAUDE.md → AGENTS.md → .agentforge/memory.md; 12k cap; tests in tests/test_project_memory.py.

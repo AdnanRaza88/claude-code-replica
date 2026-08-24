@@ -7,15 +7,15 @@ Implement **one feature per chat**. Mark SPEC status when verified. Only then st
 | Order | ID | Name | Status | Why this order |
 |------|-----|------|--------|----------------|
 | A1 | F-000 | Foundation / headless boundaries | partial | Ensure tools/runtime stay UI-free |
-| A2 | F-018 | Plan mode | todo | Specs before code; needed for SDD |
-| A3 | F-020 | Project memory (CLAUDE.md-style) | todo | Stable project instructions |
-| A4 | F-031 | Shared context / bible | todo | Unlocks safe parallel build |
+| A2 | F-018 | Plan mode | done (engine) | Specs before code; needed for SDD |
+| A3 | F-020 | Project memory (CLAUDE.md-style) | done | Stable project instructions |
+| A4 | F-031 | Shared context / bible | done (load+inject) | Unlocks safe parallel build |
 
 ## Phase B — Coherent parallel build
 
 | Order | ID | Name | Status |
 |------|-----|------|--------|
-| B1 | F-033 | Spec-driven pipeline (PRD/TRD-lite) | todo |
+| B1 | F-033 | Spec-driven pipeline (PRD/TRD-lite) | **todo — build next** |
 | B2 | F-013 | Task graph waves + barriers | partial |
 | B3 | F-016 | Harness verify barriers | partial |
 
@@ -43,6 +43,6 @@ F-001–F-005 tools, F-008–F-009 web, F-011 providers, F-012 permissions, F-01
 
 ## Next feature to build (recommendation)
 
-**Start next chat with: F-018 Plan mode**
+**Start next chat with: F-033 Spec-driven pipeline (PRD/TRD-lite)**
 
-Reason: enables SDD, reduces reckless writes, prerequisite for bible + parallel waves + beginner “describe then build” flow. After F-018 is verified → F-020 → F-031.
+Reason: Phase A foundation (plan mode + memory + bible load) is in place. F-033 turns user intent into structured specs before implementation waves.

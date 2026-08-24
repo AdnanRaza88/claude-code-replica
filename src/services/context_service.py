@@ -29,6 +29,22 @@ DOMAIN_MAP: dict[str, list[str]] = {
     "scheduling": ["CronCreate", "CronDelete", "CronList", "ScheduleWakeup"],
 }
 
+# F-020: CLAUDE.md-style instruction files (first hit wins)
+MEMORY_CANDIDATES = (
+    "CLAUDE.md",
+    "AGENTS.md",
+    ".agentforge/memory.md",
+)
+
+# F-031: shared bible for parallel coherence
+BIBLE_CANDIDATES = (
+    ".agentforge/BIBLE.md",
+    "BIBLE.md",
+)
+
+DEFAULT_MEMORY_CAP = 12_000
+DEFAULT_BIBLE_CAP = 8_000
+
 
 class ContextIndexer:
     def __init__(self):
@@ -108,13 +124,116 @@ class ContextIndexer:
 
 
 class ContextService:
-    def __init__(self, skill_service=None):
+    def __init__(self, skill_service=None, project_root: str | Path | None = None):
         self.indexer = ContextIndexer()
         self.skill_service = skill_service
         self._packs: dict[str, ContextPack] = {}
+        self._project_root: Path | None = Path(project_root) if project_root else None
+        self._memory_text: str = ""
+        self._memory_source: str | None = None
+        self._bible_text: str = ""
+        self._bible_source: str | None = None
+        self._memory_loaded = False
+        self._bible_loaded = False
 
     def set_skill_service(self, skill_service) -> None:
         self.skill_service = skill_service
+
+    def set_project_root(self, root: str | Path | None) -> None:
+        new_root = Path(root).resolve() if root else None
+        if new_root == self._project_root:
+            return
+        self._project_root = new_root
+        self._memory_loaded = False
+        self._bible_loaded = False
+        self._memory_text = ""
+        self._memory_source = None
+        self._bible_text = ""
+        self._bible_source = None
+
+    def _ensure_root(self) -> Path:
+        if self._project_root is None:
+            self._project_root = Path.cwd()
+        return self._project_root
+
+    @staticmethod
+    def _read_capped(path: Path, max_chars: int) -> str:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace").strip()
+        except OSError:
+            return ""
+        if not text:
+            return ""
+        if len(text) > max_chars:
+            return text[:max_chars] + "\n...[truncated]..."
+        return text
+
+    def load_project_memory(self, max_chars: int = DEFAULT_MEMORY_CAP) -> str:
+        """F-020: load CLAUDE.md / AGENTS.md / .agentforge/memory.md. Missing = empty."""
+        root = self._ensure_root()
+        if self._memory_loaded:
+            return self._memory_text
+        self._memory_loaded = True
+        self._memory_text = ""
+        self._memory_source = None
+        for name in MEMORY_CANDIDATES:
+            path = root / name
+            if not path.is_file():
+                continue
+            text = self._read_capped(path, max_chars)
+            if text:
+                self._memory_text = text
+                self._memory_source = name
+                break
+        return self._memory_text
+
+    def load_project_bible(self, max_chars: int = DEFAULT_BIBLE_CAP) -> str:
+        """F-031: load .agentforge/BIBLE.md or BIBLE.md. Missing = empty."""
+        root = self._ensure_root()
+        if self._bible_loaded:
+            return self._bible_text
+        self._bible_loaded = True
+        self._bible_text = ""
+        self._bible_source = None
+        for name in BIBLE_CANDIDATES:
+            path = root / name
+            if not path.is_file():
+                continue
+            text = self._read_capped(path, max_chars)
+            if text:
+                self._bible_text = text
+                self._bible_source = name
+                break
+        return self._bible_text
+
+    def set_project_bible(self, text: str, *, force: bool = False) -> bool:
+        """Write bible only when empty or force=True (never silent overwrite)."""
+        text = (text or "").strip()
+        if not text:
+            return False
+        if self._bible_text and not force:
+            return False
+        self._bible_text = text[:DEFAULT_BIBLE_CAP]
+        self._bible_source = "runtime"
+        self._bible_loaded = True
+        return True
+
+    def get_project_memory(self) -> str:
+        return self.load_project_memory()
+
+    def get_project_bible(self) -> str:
+        return self.load_project_bible()
+
+    def memory_meta(self) -> dict[str, Any]:
+        self.load_project_memory()
+        self.load_project_bible()
+        return {
+            "memory_source": self._memory_source,
+            "memory_chars": len(self._memory_text),
+            "bible_source": self._bible_source,
+            "bible_chars": len(self._bible_text),
+            "project_root": str(self._project_root) if self._project_root else None,
+        }
 
     def load_source(self, path: str | Path) -> None:
         self.indexer.index_file(path)
@@ -151,7 +270,14 @@ class ContextService:
         max_excerpts: int = 6,
         max_chars_per_excerpt: int = 2500,
         objective: str = "",
+        project_root: str | Path | None = None,
     ) -> ContextPack:
+        if project_root is not None:
+            self.set_project_root(project_root)
+
+        memory = self.load_project_memory()
+        bible = self.load_project_bible()
+
         heading_names = DOMAIN_MAP.get(domain, DOMAIN_MAP["general"])
         excerpts: list[str] = []
         refs: list[str] = []
@@ -197,16 +323,22 @@ class ContextService:
             role_instructions=role,
             source_excerpts=excerpts,
             project_context=project_context,
+            project_memory=memory,
+            project_bible=bible,
             skill_ids=resolved_skill_ids,
             tool_contracts=tool_contracts or [],
             token_estimate=(
                 sum(len(e) // 4 for e in excerpts)
                 + sum(len(s) // 4 for s in skill_sections)
                 + len(project_context) // 4
+                + len(memory) // 4
+                + len(bible) // 4
             ),
             metadata={
                 "context_refs": refs,
                 "skill_sections": skill_sections,
+                "memory_source": self._memory_source,
+                "bible_source": self._bible_source,
             },
         )
         self._packs[pack.pack_id] = pack

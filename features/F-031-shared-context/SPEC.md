@@ -1,6 +1,6 @@
 # F-031 — Shared context / Project Bible
 
-**Status:** todo  
+**Status:** done (load + inject)  
 **Phase:** A4  
 
 ## Description
@@ -30,9 +30,8 @@ Single locked “bible” (theme, stack, constraints, naming) injected into ever
 ## Touch
 
 - `src/services/context_service.py`  
-- `src/orchestration/runtime.py`  
-- `src/models/`  
+- `src/models/context.py`  
 
 ## Done note
 
-_(empty)_
+Load .agentforge/BIBLE.md or BIBLE.md into every pack; set_project_bible(force=) never silent-overwrites; full parallel integrator still future work.

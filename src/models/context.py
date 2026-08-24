@@ -21,6 +21,8 @@ class ContextPack(BaseModel):
     role_instructions: str = ""
     source_excerpts: list[str] = Field(default_factory=list)
     project_context: str = ""
+    project_memory: str = ""
+    project_bible: str = ""
     skill_ids: list[str] = Field(default_factory=list)
     tool_contracts: list[dict[str, Any]] = Field(default_factory=list)
     output_schema: dict[str, Any] | None = None
@@ -36,6 +38,10 @@ class ContextPack(BaseModel):
             parts.extend(skill_sections)
         elif self.skill_ids:
             parts.append("## Assigned skills\n" + ", ".join(self.skill_ids))
+        if self.project_bible:
+            parts.append("## Project bible (locked)\n" + self.project_bible)
+        if self.project_memory:
+            parts.append("## Project memory\n" + self.project_memory)
         if self.project_context:
             parts.append("## Project context\n" + self.project_context)
         if self.source_excerpts:
