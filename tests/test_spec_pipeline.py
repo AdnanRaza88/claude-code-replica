@@ -1,19 +1,26 @@
-"""F-033 spec-driven pipeline tests."""
+"""F-033 spec-driven pipeline tests (improved templates + gates)."""
 from __future__ import annotations
 
 from pathlib import Path
 
-from src.services.spec_service import SpecService, STATUS_LOCKED, ARTIFACT_KINDS
+from src.services.spec_service import (
+    SpecService,
+    STATUS_LOCKED,
+    CORE_ARTIFACT_KINDS,
+    ARTIFACT_KINDS,
+)
 from src.orchestration.planner import Planner
 
 
-def test_create_project_templates(tmp_path: Path):
+def test_create_project_includes_plan_template(tmp_path: Path):
     svc = SpecService(tmp_path)
     info = svc.create_project("Build a notes app with tags")
-    assert info["slug"]
     arts = svc.list_artifacts(info["slug"])
     assert all(arts[k] for k in ARTIFACT_KINDS)
-    assert "Acceptance" in svc.read_artifact(info["slug"], "PRD")
+    prd = svc.read_artifact(info["slug"], "PRD")
+    assert "Given" in prd and "WHEN" in prd
+    intent = svc.read_artifact(info["slug"], "INTENT")
+    assert "Open questions" in intent
 
 
 def test_no_overwrite_existing(tmp_path: Path):
@@ -24,28 +31,43 @@ def test_no_overwrite_existing(tmp_path: Path):
     assert svc.read_artifact(slug, "INTENT").strip() == "custom intent"
 
 
-def test_lock_requires_complete(tmp_path: Path):
+def test_placeholder_blocks_lock(tmp_path: Path):
     svc = SpecService(tmp_path)
-    slug = "partial"
-    (svc.specs_root / slug).mkdir(parents=True)
+    slug = svc.create_project("game")["slug"]
+    report = svc.placeholder_report(slug)
+    assert report  # templates still have placeholders
     try:
         svc.lock(slug)
         assert False, "should raise"
     except ValueError as e:
-        assert "missing" in str(e).lower()
+        assert "placeholder" in str(e).lower()
 
 
-def test_lock_and_gate(tmp_path: Path):
+def test_lock_after_fill(tmp_path: Path):
     svc = SpecService(tmp_path)
     slug = svc.create_project("game")["slug"]
-    ok, reason = svc.can_spawn_implementation(slug, strict=True)
-    assert not ok
-    svc.lock(slug)
-    ok, reason = svc.can_spawn_implementation(slug, strict=True)
+    for kind in CORE_ARTIFACT_KINDS:
+        svc.write_artifact(
+            slug,
+            kind,
+            f"# {kind}\n\nFilled content with no template markers.\nAcceptance: done.\n",
+        )
+    assert svc.placeholder_report(slug) == {}
+    data = svc.lock(slug)
+    assert data["status"] == STATUS_LOCKED
+    assert (tmp_path / ".agentforge" / "BIBLE.md").is_file()
+    ok, _ = svc.can_spawn_implementation(slug, strict=True)
     assert ok
-    assert svc.is_locked(slug)
-    bible = tmp_path / ".agentforge" / "BIBLE.md"
-    assert bible.is_file()
+
+
+def test_confirm_requires_fill(tmp_path: Path):
+    svc = SpecService(tmp_path)
+    slug = svc.create_project("app")["slug"]
+    try:
+        svc.confirm(slug)
+        assert False
+    except ValueError:
+        pass
 
 
 def test_planner_spec_request():

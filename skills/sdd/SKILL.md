@@ -1,52 +1,70 @@
 ---
 name: sdd
 domain: planning
-description: Spec-driven + agentic coding — Intent, PRD-lite, TRD-lite, waves, bible; contracts not novels; gate code until locked
+description: Spec-driven + agentic coding — interview, Intent/PRD/TRD/WAVES/BIBLE/PLAN, EARS, examples, gates; contracts not novels
 allowed_tools: read, search, web_search, write, edit
 priority: 95
-version: 1.0
+version: 1.1
 ---
 
 # Spec-driven + agentic coding
 
-You write **contracts** first, then code. You are not a vibe coder.
+You write **contracts** first, then code. Not vibe coding.
+Aligned with Agent Factory (spec → build → verify), GitHub Spec Kit, and Claude plan-first practice.
 
-## Pipeline (always this order)
+## Pipeline order (do not skip)
 
-1. **Intent** — 5–10 lines: what / who / success / out of scope
-2. **PRD-lite** — goals, non-goals, acceptance checkboxes (testable)
-3. **TRD-lite** — stack, modules, interfaces, deps, risks
-4. **WAVES** — wave 0 lock → sequential foundation → parallel slices → verify barrier
-5. **BIBLE** — one theme, stack, naming, layout, non-goals, parallel rules
-6. User confirm → **lock** → only then implementation agents
+1. **Interview** (plan mode) — 3–7 hard questions; record Q/A in Intent
+2. **Intent** — what/why, non-goals, open questions (no stack)
+3. **PRD-lite** — goals, non-goals, EARS requirements, acceptance checkboxes, Given/When/Then examples, NFRs
+4. **TRD-lite** — stack, modules, interfaces, data, deps, test mapping to ACs
+5. **WAVES** — wave 0 lock → foundation → parallel slices → barriers → verify
+6. **BIBLE** — one theme, stack, naming, parallel rules
+7. User **confirm** → **lock** (no leftover `_fill_` placeholders)
+8. **PLAN** — file-level implementation steps (after lock, before feature code)
+9. Implementation agents → verify against ACs + examples
 
-Artifacts live under `.agentforge/specs/<slug>/` as `INTENT.md`, `PRD.md`, `TRD.md`, `WAVES.md`, `BIBLE.md` plus `STATUS.json`.
+Paths: `.agentforge/specs/<slug>/{INTENT,PRD,TRD,WAVES,BIBLE,PLAN}.md` + `STATUS.json`
 
-## Good practices
+Status flow: `draft → clarified → confirmed → locked → in_progress → done`
 
-- Short: prefer one screen per doc. Contracts beat essays.
-- Every implementation task maps to at least one **acceptance** line in PRD.
-- Parallel only when tasks share **no** file or API ownership conflict.
-- Bible is the single theme/stack source of truth; children do not invent a second theme.
-- Non-goals are mandatory — they prevent scope creep and vibe features.
-- Prefer explicit interfaces (inputs → outputs) over vague "handle X".
-- Wave barrier: do not start wave N+1 until wave N acceptance is checked.
+## Interview rules (before filling templates)
 
-## Plan mode behavior
+Ask only non-obvious questions, for example:
 
-When session is plan mode or user asks for a plan/spec:
+- Who is the primary user and what is the single success metric?
+- What must we explicitly NOT build this pass?
+- Which edge cases will users hit in week one?
+- What stack/constraints are fixed vs free?
+- What does “done” look like as a test or demo?
 
-- Produce or fill the five artifacts.
-- Do not implement production features yet.
-- Ask user to confirm acceptance lines before lock.
+If the user is silent on a point, list it under **Open questions** — do not invent product policy.
+
+## Writing quality (Smart-kid test)
+
+- Another engineer could implement from the docs without the chat history.
+- Every sentence either **constrains** the build or **helps verify** it; delete padding.
+- Prefer EARS: `WHEN [condition] THE SYSTEM SHALL [behavior]`.
+- Ban vague words: fast, clean, intuitive, should — replace with measurable ACs.
+- Examples beat adjectives: Given / When / Then.
+- MECE: one requirement lives in one place; cross-link, do not duplicate.
+- Balanced detail: not a one-liner, not a 50-page PRD.
+
+## Plan mode
+
+- Produce or refine the artifacts above.
+- Write only under `.agentforge/specs/` and `.agentforge/BIBLE.md`.
+- No production feature code. No bash.
+- End with: open questions, path to confirm/lock, slug name.
 
 ## Agent mode / implementation
 
-- Refuse large parallel code spawn if specs are missing or unlocked (say what is missing).
-- After lock, follow bible + TRD interfaces exactly.
-- If reality contradicts bible, stop and surface the contradiction — do not silently diverge.
+- If core specs missing or not locked → refuse large parallel code; say what is missing.
+- After lock, follow bible + TRD interfaces; map tasks to ACn.
+- Contradiction with bible → stop and surface; do not silent-merge.
+- Prefer sequence when shared files/APIs; parallel only when WAVES says so.
 
-## Result shape for spec phase
+## Result shape (spec phase)
 
 ```json
 {
@@ -54,13 +72,14 @@ When session is plan mode or user asks for a plan/spec:
   "summary": "what was specified",
   "artifacts": [".agentforge/specs/<slug>/..."],
   "open_questions": [],
-  "plan": { "slug": "...", "next": "confirm and lock" }
+  "plan": { "slug": "...", "status": "draft|clarified|...", "next": "confirm and lock" }
 }
 ```
 
 ## Anti-patterns
 
-- 50-page PRDs
-- Code before acceptance criteria
-- Parallel agents with only a one-line user ask and no bible
-- Each agent choosing its own stack or visual theme
+- Jumping to code from a one-line ask
+- Empty non-goals or empty open questions when ambiguous
+- Parallel agents with no bible
+- Each agent inventing stack or theme
+- Confirm/lock while `_fill_` placeholders remain
