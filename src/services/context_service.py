@@ -55,48 +55,91 @@ class ContextIndexer:
                 body = "\n".join(buffer).strip()
                 self._content_by_id[current.context_id] = body
                 self.headings.append(current)
+            current = None
             buffer = []
 
-        for i, line in enumerate(self._raw_lines, start=1):
+        for i, line in enumerate(self._raw_lines):
             m = heading_re.match(line)
             if m:
                 flush()
                 level = len(m.group(1))
                 title = m.group(2).strip()
-                cid = f"h{i}-{re.sub(r'[^a-zA-Z0-9]+', '-', title).strip('-').lower()[:48]}"
-                current = ContextRef(
-                    context_id=cid,
-                    heading=title,
-                    start_line=i,
-                    priority=level,
-                )
+                cid = f"h{level}:{title}:{i}"
+                current = ContextRef(context_id=cid, heading=title, start_line=i + 1)
+                buffer = []
             else:
-                if current is not None:
-                    buffer.append(line)
+                buffer.append(line)
         flush()
 
     def find_by_heading(self, name: str) -> list[ContextRef]:
-        name_l = name.lower()
-        return [h for h in self.headings if name_l in h.heading.lower()]
+        needle = name.lower()
+        return [h for h in self.headings if needle in (h.heading or "").lower()]
 
-    def get_content(self, context_id: str, max_chars: int = 4000) -> str:
+    def get_content(self, context_id: str, max_chars: int = 2500) -> str:
         body = self._content_by_id.get(context_id, "")
         if len(body) > max_chars:
-            return body[:max_chars] + "\n...[truncated]"
+            return body[:max_chars] + "\n...[truncated]..."
         return body
+
+    def search(self, query: str, limit: int = 5, max_chars: int = 2000) -> list[tuple[ContextRef, str]]:
+        if not query or not self.headings:
+            return []
+        tokens = [t.lower() for t in re.findall(r"[a-zA-Z0-9_]{3,}", query)]
+        if not tokens:
+            tokens = [query.lower()]
+        scored: list[tuple[float, ContextRef]] = []
+        for ref in self.headings:
+            heading = (ref.heading or "").lower()
+            body = self._content_by_id.get(ref.context_id, "").lower()
+            score = 0.0
+            for t in tokens:
+                if t in heading:
+                    score += 3.0
+                score += body.count(t) * 0.5
+            if score > 0:
+                scored.append((score, ref))
+        scored.sort(key=lambda x: -x[0])
+        out = []
+        for score, ref in scored[:limit]:
+            body = self.get_content(ref.context_id, max_chars)
+            if body:
+                out.append((ref, body))
+        return out
 
 
 class ContextService:
     def __init__(self, skill_service=None):
         self.indexer = ContextIndexer()
+        self.skill_service = skill_service
         self._packs: dict[str, ContextPack] = {}
+
+    def set_skill_service(self, skill_service) -> None:
         self.skill_service = skill_service
 
     def load_source(self, path: str | Path) -> None:
         self.indexer.index_file(path)
 
-    def set_skill_service(self, skill_service) -> None:
-        self.skill_service = skill_service
+    def load_knowledge_dir(self, root: str | Path) -> int:
+        root = Path(root)
+        if not root.exists():
+            return 0
+        count = 0
+        for path in sorted(root.rglob("*.md")):
+            if path.name.upper() == "INDEX.MD":
+                continue
+            try:
+                self.indexer.index_file(path)
+                count += 1
+            except Exception:
+                continue
+        return count
+
+    def retrieve_for_query(self, query: str, limit: int = 4, max_chars: int = 1800) -> list[str]:
+        hits = self.indexer.search(query, limit=limit, max_chars=max_chars)
+        excerpts = []
+        for ref, body in hits:
+            excerpts.append(f"### {ref.heading}\n{body}")
+        return excerpts
 
     def build_pack(
         self,
@@ -107,22 +150,31 @@ class ContextService:
         role_instructions: str = "",
         max_excerpts: int = 6,
         max_chars_per_excerpt: int = 2500,
+        objective: str = "",
     ) -> ContextPack:
         heading_names = DOMAIN_MAP.get(domain, DOMAIN_MAP["general"])
         excerpts: list[str] = []
         refs: list[str] = []
 
+        if objective:
+            for chunk in self.retrieve_for_query(objective, limit=3, max_chars=max_chars_per_excerpt):
+                excerpts.append(chunk)
+                if len(excerpts) >= max_excerpts:
+                    break
+
         for name in heading_names:
+            if len(excerpts) >= max_excerpts:
+                break
             matches = self.indexer.find_by_heading(name)
             for ref in matches[:2]:
                 body = self.indexer.get_content(ref.context_id, max_chars_per_excerpt)
                 if body:
-                    excerpts.append(f"### {ref.heading}\n{body}")
-                    refs.append(ref.context_id)
+                    block = f"### {ref.heading}\n{body}"
+                    if block not in excerpts:
+                        excerpts.append(block)
+                        refs.append(ref.context_id)
                 if len(excerpts) >= max_excerpts:
                     break
-            if len(excerpts) >= max_excerpts:
-                break
 
         skill_sections: list[str] = []
         resolved_skill_ids = list(skill_ids or [])
