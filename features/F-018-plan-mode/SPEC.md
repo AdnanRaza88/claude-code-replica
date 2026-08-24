@@ -1,7 +1,7 @@
 # F-018 — Plan mode
 
-**Status:** todo  
-**Phase:** A2 — build this next  
+**Status:** in progress (engine + UI toggle)  
+**Phase:** A2  
 
 ## Description
 
@@ -43,4 +43,10 @@ Beginners and SDD need “think first.” Prevents parallel agents coding before
 
 ## Done note
 
-_(empty until verified)_
+Engine (2026-08-24):
+- SessionState.mode agent|plan; SessionService.set_mode / set_last_plan
+- PLAN_MODE_ALLOWED_TOOLS + block in AgentRuntime._invoke_tool with clear error
+- _spawn_agent filters allowed_tools; plan system/user hints on leaf + harness
+- app.py Mode select wires session.mode; header shows PLAN|AGENT
+- tests/test_plan_mode.py
+Manual: sidebar Mode=plan → task with write intent → tool blocked message; Mode=agent unchanged.

@@ -31,17 +31,40 @@ class SessionService:
         provider_config: ProviderConfig | None = None,
         permission_mode: PermissionMode = PermissionMode.ASK,
         project_root: str | None = None,
+        mode: str = "agent",
     ) -> SessionState:
+        run_mode = mode if mode in ("agent", "plan") else "agent"
         session = SessionState(
             provider_config=provider_config,
             permission_mode=permission_mode,
             project_root=project_root,
+            mode=run_mode,
         )
         self._sessions[session.session_id] = session
         return session
 
     def get(self, session_id: str) -> SessionState | None:
         return self._sessions.get(session_id)
+
+    def set_mode(self, session_id: str, mode: str) -> SessionState | None:
+        session = self._sessions.get(session_id)
+        if session is None:
+            return None
+        session.mode = mode if mode in ("agent", "plan") else "agent"
+        return session
+
+    def set_last_plan(self, session_id: str, plan: dict[str, Any] | str) -> None:
+        session = self._sessions.get(session_id)
+        if session is None:
+            return
+        session.metadata["last_plan"] = plan
+        session.metadata["last_plan_at"] = datetime.now(timezone.utc).isoformat()
+
+    def get_last_plan(self, session_id: str) -> Any:
+        session = self._sessions.get(session_id)
+        if session is None:
+            return None
+        return session.metadata.get("last_plan")
 
     def update_provider(self, session_id: str, config: ProviderConfig) -> SessionState | None:
         session = self._sessions.get(session_id)
