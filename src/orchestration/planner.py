@@ -11,6 +11,7 @@ DOMAIN_KEYWORDS: dict[str, list[str]] = {
         "internet", "web search", "browse", "news", "latest news", "current events", "aaj ki date",
         "today's date", "google news", "search the web", "online", "what is happening",
         "latest update", "latest updates", "headlines", "fetch from web", "look up",
+        "youtube", "reddit", "twitter", "transcript", "agent reach", "agent_reach", "wikipedia",
     ],
     "implementation": ["implement", "add feature", "write code", "build", "create function", "fix bug", "refactor"],
     "code-review": ["review", "code review", "pr review", "critique", "audit code"],
@@ -61,8 +62,8 @@ DOMAIN_PRIMARY_SKILL: dict[str, str] = {
 }
 
 DOMAIN_TOOLS: dict[str, list[str]] = {
-    "orchestrator": ["read", "search", "github", "web_search", "web_fetch", "pinchtab"],
-    "research": ["web_search", "web_fetch", "read", "search", "bash", "github", "pinchtab"],
+    "orchestrator": ["read", "search", "github", "web_search", "web_fetch", "pinchtab", "agent_reach"],
+    "research": ["web_search", "web_fetch", "read", "search", "bash", "github", "pinchtab", "agent_reach"],
     "implementation": ["read", "write", "edit", "search", "bash", "web_search"],
     "code-review": ["read", "search", "github", "web_search", "web_fetch"],
     "testing": ["read", "write", "edit", "search", "bash", "web_search"],
@@ -70,12 +71,12 @@ DOMAIN_TOOLS: dict[str, list[str]] = {
     "frontend": ["read", "write", "edit", "search", "bash", "web_search"],
     "backend": ["read", "write", "edit", "search", "bash", "web_search"],
     "security": ["read", "search", "bash", "web_search"],
-    "docs": ["read", "write", "edit", "search", "web_search", "web_fetch"],
-    "browser": ["web_search", "web_fetch", "pinchtab", "bash", "read", "search"],
+    "docs": ["read", "write", "edit", "search", "web_search", "web_fetch", "agent_reach"],
+    "browser": ["web_search", "web_fetch", "pinchtab", "agent_reach", "bash", "read", "search"],
     "tools": ["bash", "read", "search", "web_search"],
     "memory": ["read", "write", "edit", "search"],
     "planning": ["read", "search", "web_search", "write", "edit"],
-    "general": ["web_search", "web_fetch", "read", "write", "edit", "search", "bash", "github", "pinchtab"],
+    "general": ["web_search", "web_fetch", "read", "write", "edit", "search", "bash", "github", "pinchtab", "agent_reach"],
 }
 
 IMPLEMENTATION_DOMAINS = frozenset(
@@ -104,7 +105,7 @@ class Planner:
             found.append("general")
         research_signals = (
             "internet", "news", "browse", "web search", "online", "latest update",
-            "aaj ki date", "today", "google", "headlines", "current",
+            "aaj ki date", "today", "google", "headlines", "current", "wikipedia",
         )
         if any(s in text for s in research_signals) and "research" not in found:
             found.insert(0, "research")
@@ -156,11 +157,9 @@ class Planner:
         graph = TaskGraph(session_id=session_id)
         domains = self.detect_domains(objective)
 
-        # Plan mode or explicit SDD request → planning root, no implementation children
         if mode == "plan" or self.is_spec_request(objective):
             return self._spec_graph(graph, objective)
 
-        # Strict SDD: build without locked specs → planning first, not parallel code
         if (
             self.strict_sdd
             and self.is_build_request(objective)
