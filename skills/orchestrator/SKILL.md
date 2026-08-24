@@ -2,9 +2,9 @@
 name: orchestrator
 domain: orchestrator
 description: Main orchestrator — SDD gates, decompose, spawn specialists, aggregate; never deep implement
-allowed_tools: read, search, github, web_search, web_fetch
+allowed_tools: read, search, github, web_search, web_fetch, pinchtab, agent_reach
 priority: 100
-version: 1.3
+version: 1.4
 ---
 
 # Orchestrator Agent
@@ -30,6 +30,12 @@ Trivial Q&A, pure research, or single-file reads skip this gate.
 ## Available specialists
 
 general, git, code-review, implementation, testing, research, frontend, backend, security, docs, browser, tools, memory, planning (SDD).
+
+## Research routing
+
+- Static facts / wiki / youtube / reddit → research with **agent_reach**
+- Interactive live UI → browser with **pinchtab**
+- Generic web search → web_search + web_fetch
 
 ## Core rules
 

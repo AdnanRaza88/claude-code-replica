@@ -47,7 +47,7 @@ if _TOOL_MARKER not in _code:
 
 _TOOL_INJECT = '''tool_reg.register(WebFetchTool())
 
-        # Optional browser + multi-platform reach (fail soft)
+        # Optional browser + multi-platform reach (fail soft — app must not crash)
         try:
             from src.tools.pinchtab_tool import PinchTabTool
 
@@ -71,14 +71,10 @@ _TOOL_INJECT = '''tool_reg.register(WebFetchTool())
 
 _code = _code.replace(_TOOL_MARKER, _TOOL_INJECT, 1)
 
-# --- Optional PinchTab sidebar (after GitHub token block if present, else end of sidebar settings) ---
-_SIDEBAR_MARKERS = [
-    'st.caption("No GitHub token — github tool will report missing credentials")',
-    'st.markdown("### Settings")',
-]
+# --- PinchTab sidebar: match exact base caption ---
 _SIDEBAR_INJECT = '''
         st.markdown("---")
-        st.caption("Browser (PinchTab) — only needed if local pinchtab server is running")
+        st.caption("Browser (PinchTab) — only if local server is running on :9867")
         pt_url = st.text_input(
             "PinchTab URL",
             value=st.session_state.credentials.get("pinchtab_url", "http://127.0.0.1:9867"),
@@ -97,10 +93,32 @@ _SIDEBAR_INJECT = '''
             st.session_state.credentials["pinchtab_token"] = pt_tok
 '''
 
-# Prefer inject near GitHub caption; fallback skip if structure unknown (tools still register)
-for _m in _SIDEBAR_MARKERS[:1]:
+# Base app uses short caption "No GitHub token"
+_gh_markers = [
+    'st.caption("No GitHub token")',
+    'st.caption("GitHub connected")',
+]
+_injected = False
+for _m in _gh_markers:
     if _m in _code:
         _code = _code.replace(_m, _m + _SIDEBAR_INJECT, 1)
+        _injected = True
         break
+
+# Fallback: after Connectors GitHub token input block
+if not _injected and 'key="gh_token_input"' in _code:
+    _code = _code.replace(
+        'key="gh_token_input",
+        )',
+        'key="gh_token_input",
+        )' + _SIDEBAR_INJECT,
+        1,
+    )
+
+# UI: mention agent_reach in sources caption
+_code = _code.replace(
+    'st.caption("Sources from web_search / github appear here")',
+    'st.caption("Sources from web_search / agent_reach / github appear here")',
+)
 
 exec(compile(_code, __file__, "exec"), globals())
