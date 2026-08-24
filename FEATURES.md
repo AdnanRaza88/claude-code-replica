@@ -4,7 +4,7 @@
 **Per-feature packets:** `features/F-xxx-*/SPEC.md` — load **only** that SPEC in implement chats.  
 This file remains a flat index; detailed Do/Don’t live in each SPEC.
 
-**Next to build:** **F-018 Plan mode** → F-020 → F-031 (see `docs/BUILD_SEQUENCE.md`).
+**Next to build:** **F-033 Spec-driven pipeline** (see `docs/BUILD_SEQUENCE.md`).
 
 ---
 
@@ -50,14 +50,14 @@ Do not reload the whole repo into context.
 | ID | Folder | Status |
 |----|--------|--------|
 | F-000 | `features/F-000-foundation/` | partial |
-| F-018 | `features/F-018-plan-mode/` | **todo — build next** |
-| F-020 | `features/F-020-project-memory/` | todo |
+| F-018 | `features/F-018-plan-mode/` | done (engine) |
+| F-020 | `features/F-020-project-memory/` | **done** |
 | F-023 | `features/F-023-cli/` | todo |
 | F-024 | `features/F-024-web-ui/` | todo |
 | F-025 | `features/F-025-docker/` | todo |
-| F-031 | `features/F-031-shared-context/` | todo |
+| F-031 | `features/F-031-shared-context/` | done (load+inject) |
 | F-032 | `features/F-032-voice-input/` | todo |
-| F-033 | `features/F-033-spec-driven/` | todo |
+| F-033 | `features/F-033-spec-driven/` | **todo — build next** |
 | F-034 | `features/F-034-review-swarm/` | todo |
 | F-035 | `features/F-035-safe-fix/` | todo |
 
@@ -74,4 +74,4 @@ Older checklist items (tools, web, providers, permissions, skills, harness) rema
 | 2026-08-24 | Parallel agents must share Project Bible |
 | 2026-08-24 | Find vs safe-fix separated; review swarm asks permission if N high |
 | 2026-08-24 | Voice + SDD for beginners |
-| 2026-08-24 | **Next implement chat: F-018 Plan mode** |
+| 2026-08-24 | Phase A: F-018 + F-020 + F-031 load/inject shipped; next F-033 |
