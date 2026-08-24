@@ -5,14 +5,20 @@ from src.models.task import Task, TaskGraph
 
 
 # Domain → keywords for lightweight detection (LLM planner can replace later)
+# Prefer multi-word / distinctive phrases. Short tokens use word-boundary match in detect_domains.
 DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "orchestrator": ["orchestrate", "coordinate agents", "multi agent", "kitne agents", "how many agents"],
-    "research": ["explore", "research", "find where", "locate", "investigate", "how does", "search codebase"],
+    "research": [
+        "explore", "research", "find where", "locate", "investigate", "how does", "search codebase",
+        "internet", "web search", "browse", "news", "latest news", "current events", "aaj ki date",
+        "today's date", "google news", "search the web", "online", "what is happening",
+        "latest update", "latest updates", "headlines", "fetch from web", "look up",
+    ],
     "implementation": ["implement", "add feature", "write code", "build", "create function", "fix bug", "refactor"],
     "code-review": ["review", "code review", "pr review", "critique", "audit code"],
-    "testing": ["test", "unit test", "pytest", "coverage", "spec", "tdd"],
+    "testing": ["unit test", "pytest", "test coverage", "tdd", "write tests", "run tests"],
     "git": [
-        "git", "commit", "branch", "pull request", "pr ", "merge", "diff", "repo", "repos",
+        "git ", "commit", "branch", "pull request", "pr ", "merge", "diff", "repo", "repos",
         "push", "github", "profile", "bio", "repositories", "my repos", "meri repos",
         "github token", "github account",
     ],
@@ -27,6 +33,12 @@ DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "tools": ["run command", "bash", "shell", "execute", "terminal"],
     "memory": ["remember", "memory", "persist fact", "forget"],
     "planning": ["plan", "architecture", "design the system", "decompose", "roadmap"],
+}
+
+# Short tokens that must match as whole words (avoid "test" inside "latest")
+_WORD_BOUNDARY_KEYWORDS: dict[str, list[str]] = {
+    "testing": ["test", "tests", "spec", "specs"],
+    "git": ["git"],
 }
 
 # Primary skill id per domain (matches skills/<domain>/SKILL.md)
@@ -49,22 +61,23 @@ DOMAIN_PRIMARY_SKILL: dict[str, str] = {
 }
 
 # Default tool allowlist per domain (permission service still gates)
+# web_search / web_fetch available on any domain that might need current facts
 DOMAIN_TOOLS: dict[str, list[str]] = {
     "orchestrator": ["read", "search", "github", "web_search", "web_fetch", "pinchtab"],
-    "research": ["read", "search", "bash", "github", "web_search", "web_fetch", "pinchtab"],
-    "implementation": ["read", "write", "edit", "search", "bash"],
-    "code-review": ["read", "search", "github", "web_search"],
-    "testing": ["read", "write", "edit", "search", "bash"],
+    "research": ["web_search", "web_fetch", "read", "search", "bash", "github", "pinchtab"],
+    "implementation": ["read", "write", "edit", "search", "bash", "web_search"],
+    "code-review": ["read", "search", "github", "web_search", "web_fetch"],
+    "testing": ["read", "write", "edit", "search", "bash", "web_search"],
     "git": ["bash", "read", "search", "github", "web_search"],
-    "frontend": ["read", "write", "edit", "search", "bash"],
-    "backend": ["read", "write", "edit", "search", "bash"],
-    "security": ["read", "search", "bash"],
-    "docs": ["read", "write", "edit", "search"],
-    "browser": ["pinchtab", "bash", "read", "search", "web_search", "web_fetch"],
-    "tools": ["bash", "read", "search"],
+    "frontend": ["read", "write", "edit", "search", "bash", "web_search"],
+    "backend": ["read", "write", "edit", "search", "bash", "web_search"],
+    "security": ["read", "search", "bash", "web_search"],
+    "docs": ["read", "write", "edit", "search", "web_search", "web_fetch"],
+    "browser": ["web_search", "web_fetch", "pinchtab", "bash", "read", "search"],
+    "tools": ["bash", "read", "search", "web_search"],
     "memory": ["read", "write", "edit", "search"],
-    "planning": ["read", "search"],
-    "general": ["read", "write", "edit", "search", "bash", "github", "web_search", "web_fetch", "pinchtab"],
+    "planning": ["read", "search", "web_search"],
+    "general": ["web_search", "web_fetch", "read", "write", "edit", "search", "bash", "github", "pinchtab"],
 }
 
 
@@ -78,8 +91,24 @@ class Planner:
         for domain, kws in DOMAIN_KEYWORDS.items():
             if any(k in text for k in kws):
                 found.append(domain)
+        # Whole-word matches for short tokens (e.g. "test" must not match "latest")
+        for domain, words in _WORD_BOUNDARY_KEYWORDS.items():
+            for w in words:
+                if re.search(rf"(?<![a-z0-9]){re.escape(w)}(?![a-z0-9])", text):
+                    if domain not in found:
+                        found.append(domain)
+                    break
         if not found:
             found.append("general")
+        # Prefer research when the query is clearly about live web / news / date
+        research_signals = (
+            "internet", "news", "browse", "web search", "online", "latest update",
+            "aaj ki date", "today", "google", "headlines", "current",
+        )
+        if any(s in text for s in research_signals) and "research" not in found:
+            found.insert(0, "research")
+        elif any(s in text for s in research_signals) and "research" in found:
+            found = ["research"] + [d for d in found if d != "research"]
         # de-dupe preserve order
         seen = set()
         ordered = []
