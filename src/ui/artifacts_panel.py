@@ -1,4 +1,9 @@
-"""Streamlit helpers: workspace path + artifact preview/download."""
+"""Streamlit helpers: workspace grant + artifact preview/download.
+
+Streamlit cannot open a native OS folder dialog. UX is: agents do not run
+until the user explicitly grants a workspace path (existing or newly created).
+Native click-to-pick belongs on desktop (Tauri) later.
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -34,6 +39,71 @@ def apply_workspace_root(services: dict[str, Any], root: str) -> tuple[bool, str
         ctx.set_project_root(resolved)
 
     return True, str(resolved)
+
+
+def grant_workspace(services: dict[str, Any], root: str, st_state) -> tuple[bool, str]:
+    ok, msg = apply_workspace_root(services, root)
+    if not ok:
+        return False, msg
+    st_state["workspace_root"] = msg
+    st_state["workspace_granted"] = True
+    sid = st_state.get("active_session_id")
+    if sid and services.get("session") and hasattr(services["session"], "set_project_root"):
+        services["session"].set_project_root(sid, msg)
+    return True, msg
+
+
+def render_workspace_gate(st, services: dict[str, Any]) -> bool:
+    """Full-page gate until user grants workspace. Returns True if granted."""
+    if st.session_state.get("workspace_granted") and st.session_state.get("workspace_root"):
+        return True
+
+    st.markdown("### Workspace required")
+    st.info(
+        "Agents need a folder for specs, code, and documents. "
+        "Grant a workspace **before** any task runs.\n\n"
+        "**Local:** paste your project path, or create a new folder under a parent path.\n"
+        "**Streamlit Cloud:** use a path under the deployed app (repo mount). "
+        "Native OS folder picker needs the future desktop app — browsers cannot open full disk access."
+    )
+
+    tab_use, tab_new = st.tabs(["Use existing folder", "Create new folder"])
+
+    with tab_use:
+        existing = st.text_input(
+            "Folder path",
+            value=st.session_state.get("workspace_path_draft", ""),
+            placeholder=r"C:\Users\You\projects\my-app   or   /home/you/projects/my-app",
+            key="ws_existing_path",
+        )
+        if st.button("Grant this workspace", type="primary", key="ws_grant_existing", use_container_width=True):
+            ok, msg = grant_workspace(services, existing, st.session_state)
+            if ok:
+                st.success(f"Workspace granted: {msg}")
+                st.rerun()
+            else:
+                st.error(msg)
+
+    with tab_new:
+        parent = st.text_input(
+            "Parent directory",
+            value=str(Path.home()),
+            key="ws_parent_path",
+        )
+        name = st.text_input("New folder name", value="agent-workspace", key="ws_new_name")
+        if st.button("Create & grant", type="primary", key="ws_grant_new", use_container_width=True):
+            if not name.strip():
+                st.error("Folder name required")
+            else:
+                target = str(Path(parent).expanduser() / name.strip())
+                ok, msg = grant_workspace(services, target, st.session_state)
+                if ok:
+                    st.success(f"Created & granted: {msg}")
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+    return False
 
 
 def render_artifacts_panel(st, services: dict[str, Any]) -> None:

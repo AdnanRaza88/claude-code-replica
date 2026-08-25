@@ -1,4 +1,5 @@
-# Claude Code Replica — Streamlit adapter (workspace + artifacts + F-018 mode)
+# Claude Code Replica — Streamlit adapter
+# Workspace: prompt-first grant (no task until user sets folder)
 from __future__ import annotations
 
 import asyncio
@@ -23,7 +24,12 @@ from src.tools.bash_tool import BashTool
 from src.tools.github_tool import GitHubTool
 from src.tools.web_tools import WebSearchTool, WebFetchTool
 from src.orchestration.runtime import AgentRuntime
-from src.ui.artifacts_panel import apply_workspace_root, render_artifacts_panel
+from src.ui.artifacts_panel import (
+    apply_workspace_root,
+    grant_workspace,
+    render_artifacts_panel,
+    render_workspace_gate,
+)
 
 
 st.set_page_config(
@@ -116,13 +122,14 @@ st.markdown(
 
 def get_services():
     if "services" not in st.session_state:
-        default_root = Path(st.session_state.get("workspace_root") or Path.cwd()).expanduser().resolve()
+        # Bootstrap root only for tool init — not treated as user-granted workspace
+        boot_root = Path.cwd().resolve()
         session_svc = SessionService()
         perm_svc = PermissionService()
         event_svc = EventService()
         provider_reg = ProviderRegistry()
         tool_reg = ToolRegistry()
-        workspace = WorkspaceService(default_root)
+        workspace = WorkspaceService(boot_root)
 
         skill_svc = None
         try:
@@ -133,23 +140,23 @@ def get_services():
             st.session_state.skills_load_error = str(e)
 
         try:
-            ctx_svc = ContextService(skill_service=skill_svc, project_root=default_root)
+            ctx_svc = ContextService(skill_service=skill_svc, project_root=boot_root)
         except TypeError:
             ctx_svc = ContextService()
             if skill_svc is not None and hasattr(ctx_svc, "set_skill_service"):
                 ctx_svc.set_skill_service(skill_svc)
             if hasattr(ctx_svc, "set_project_root"):
-                ctx_svc.set_project_root(default_root)
+                ctx_svc.set_project_root(boot_root)
 
-        tool_reg.register(ReadTool(default_root, workspace=workspace))
-        tool_reg.register(WriteTool(default_root, workspace=workspace))
-        tool_reg.register(EditTool(default_root, workspace=workspace))
+        tool_reg.register(ReadTool(boot_root, workspace=workspace))
+        tool_reg.register(WriteTool(boot_root, workspace=workspace))
+        tool_reg.register(EditTool(boot_root, workspace=workspace))
         try:
-            tool_reg.register(ProjectSearchTool(default_root))
+            tool_reg.register(ProjectSearchTool(boot_root))
         except Exception:
             pass
         try:
-            tool_reg.register(BashTool(default_root))
+            tool_reg.register(BashTool(boot_root))
         except Exception:
             pass
 
@@ -160,7 +167,6 @@ def get_services():
         tool_reg.register(WebSearchTool())
         tool_reg.register(WebFetchTool())
 
-        # PinchTab + AgentReach — fail soft so app never crashes on missing optional tools
         try:
             from src.tools.pinchtab_tool import PinchTabTool
 
@@ -232,7 +238,11 @@ def get_services():
         st.session_state.active_session_id = st.session_state.get("active_session_id")
         st.session_state.fetched_models = st.session_state.get("fetched_models", {})
         st.session_state.model_fetch_error = st.session_state.get("model_fetch_error", "")
-        st.session_state.workspace_root = str(default_root)
+        # Do NOT auto-grant cwd — user must grant explicitly
+        if "workspace_granted" not in st.session_state:
+            st.session_state.workspace_granted = False
+        if "workspace_root" not in st.session_state:
+            st.session_state.workspace_root = ""
     return st.session_state.services
 
 
@@ -307,23 +317,14 @@ def main():
         st.markdown("### Settings")
 
         st.markdown('<div class="section-label">Workspace</div>', unsafe_allow_html=True)
-        ws_default = st.session_state.get("workspace_root") or str(Path.cwd())
-        ws_input = st.text_input(
-            "Project directory",
-            value=ws_default,
-            help="Local absolute path agents read/write in. On Streamlit Cloud this is the repo mount; locally set your project folder.",
-            key="workspace_path_input",
-        )
-        if st.button("Apply workspace", use_container_width=True):
-            ok, msg = apply_workspace_root(services, ws_input)
-            if ok:
-                st.session_state.workspace_root = msg
-                if st.session_state.active_session_id:
-                    services["session"].set_project_root(st.session_state.active_session_id, msg)
-                st.success(f"Workspace: {msg}")
-            else:
-                st.error(msg)
-        st.caption(f"Active: `{st.session_state.get('workspace_root', ws_default)}`")
+        if st.session_state.get("workspace_granted"):
+            st.success(f"Granted\n`{st.session_state.get('workspace_root', '')}`")
+            if st.button("Change workspace", use_container_width=True):
+                st.session_state.workspace_granted = False
+                st.session_state.workspace_root = ""
+                st.rerun()
+        else:
+            st.warning("Not granted — set workspace on main screen first")
 
         st.divider()
         provider = st.selectbox(
@@ -428,7 +429,6 @@ def main():
         pt_url = st.text_input(
             "PinchTab URL",
             value=st.session_state.credentials.get("pinchtab_url", "http://127.0.0.1:9867"),
-            help="Default http://127.0.0.1:9867. Start with: pinchtab server",
             key="pinchtab_url_input",
         )
         if pt_url:
@@ -461,6 +461,19 @@ def main():
                         services["permission"].decide(req.request_id, PermissionDecision.DENIED)
                         st.rerun()
 
+    st.markdown(
+        """
+        <div class="header-bar">
+            <h1>Claude Code Replica</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # —— Workspace gate: no chat / agents until granted ——
+    if not render_workspace_gate(st, services):
+        return
+
     if not model:
         st.error("Select or type a model name before running tasks.")
         return
@@ -476,16 +489,10 @@ def main():
         session.provider_config.credential_ref = provider
 
     mode_label = "PLAN" if getattr(session, "mode", "agent") == "plan" else "AGENT"
-    st.markdown(
-        f"""
-        <div class="header-bar">
-            <h1>Claude Code Replica</h1>
-            <span class="header-meta">session {session.session_id[:8]} · {provider}/{model} · {mode_label}</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    st.caption(
+        f"session {session.session_id[:8]} · {provider}/{model} · {mode_label} · "
+        f"`{st.session_state.get('workspace_root', '')}`"
     )
-    st.caption(f"Workspace · `{st.session_state.get('workspace_root', '')}`")
 
     col_chat, col_side = st.columns([2.0, 1.15])
 
@@ -496,6 +503,18 @@ def main():
 
         prompt = st.chat_input("Describe the task...")
         if prompt:
+            if not st.session_state.get("workspace_granted"):
+                st.session_state.messages.append({"role": "user", "content": prompt})
+                st.session_state.messages.append(
+                    {
+                        "role": "assistant",
+                        "content": (
+                            "Workspace pehle grant karo. Main screen pe folder path do "
+                            "ya naya folder banao — uske baad agents docs/code wahan rakhenge."
+                        ),
+                    }
+                )
+                st.rerun()
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
@@ -506,7 +525,10 @@ def main():
                             services["runtime"].run_task(
                                 session.session_id,
                                 prompt,
-                                project_context=f"Workspace root: {st.session_state.get('workspace_root', '')}",
+                                project_context=(
+                                    f"Workspace root (user-granted): "
+                                    f"{st.session_state.get('workspace_root', '')}"
+                                ),
                             )
                         )
                         if asyncio.isfuture(result) or hasattr(result, "__await__"):
