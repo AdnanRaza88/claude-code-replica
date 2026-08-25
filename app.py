@@ -1,9 +1,10 @@
 # Claude Code Replica — Streamlit adapter
-# Workspace: prompt-first grant (no task until user sets folder)
+# Workspace helpers inlined (no src.ui import — avoids Cloud ImportError)
 from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Any
 
 import streamlit as st
 
@@ -24,12 +25,146 @@ from src.tools.bash_tool import BashTool
 from src.tools.github_tool import GitHubTool
 from src.tools.web_tools import WebSearchTool, WebFetchTool
 from src.orchestration.runtime import AgentRuntime
-from src.ui.artifacts_panel import (
-    apply_workspace_root,
-    grant_workspace,
-    render_artifacts_panel,
-    render_workspace_gate,
-)
+
+
+def apply_workspace_root(services: dict[str, Any], root: str) -> tuple[bool, str]:
+    root = (root or "").strip()
+    if not root:
+        return False, "empty path"
+    path = Path(root).expanduser()
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        resolved = path.resolve()
+    except OSError as e:
+        return False, str(e)
+
+    ws = services.get("workspace")
+    if ws is not None:
+        ws.set_root(resolved)
+
+    tools = services.get("tools")
+    if tools is not None:
+        for name in ("read", "write", "edit", "search", "bash"):
+            t = tools.get(name) if hasattr(tools, "get") else None
+            if t is not None and hasattr(t, "set_root"):
+                t.set_root(resolved)
+            elif t is not None and hasattr(t, "root"):
+                t.root = resolved
+
+    ctx = services.get("context")
+    if ctx is not None and hasattr(ctx, "set_project_root"):
+        ctx.set_project_root(resolved)
+
+    return True, str(resolved)
+
+
+def grant_workspace(services: dict[str, Any], root: str) -> tuple[bool, str]:
+    ok, msg = apply_workspace_root(services, root)
+    if not ok:
+        return False, msg
+    st.session_state["workspace_root"] = msg
+    st.session_state["workspace_granted"] = True
+    sid = st.session_state.get("active_session_id")
+    if sid and services.get("session") and hasattr(services["session"], "set_project_root"):
+        services["session"].set_project_root(sid, msg)
+    return True, msg
+
+
+def render_workspace_gate(services: dict[str, Any]) -> bool:
+    if st.session_state.get("workspace_granted") and st.session_state.get("workspace_root"):
+        return True
+
+    st.markdown("### Workspace required")
+    st.info(
+        "Agents need a folder for specs, code, and documents. "
+        "Grant a workspace **before** any task runs.\n\n"
+        "**Local:** paste your project path, or create a new folder under a parent path.\n"
+        "**Streamlit Cloud:** use a path under the deployed app (e.g. `.` or `/mount/src/claude-code-replica`). "
+        "Native OS folder picker needs the future desktop app."
+    )
+
+    tab_use, tab_new = st.tabs(["Use existing folder", "Create new folder"])
+
+    with tab_use:
+        existing = st.text_input(
+            "Folder path",
+            value=st.session_state.get("workspace_path_draft", "."),
+            placeholder=".  or  /mount/src/claude-code-replica",
+            key="ws_existing_path",
+        )
+        if st.button("Grant this workspace", type="primary", key="ws_grant_existing", use_container_width=True):
+            ok, msg = grant_workspace(services, existing)
+            if ok:
+                st.success(f"Workspace granted: {msg}")
+                st.rerun()
+            else:
+                st.error(msg)
+
+    with tab_new:
+        parent = st.text_input(
+            "Parent directory",
+            value=".",
+            key="ws_parent_path",
+        )
+        name = st.text_input("New folder name", value="agent-workspace", key="ws_new_name")
+        if st.button("Create & grant", type="primary", key="ws_grant_new", use_container_width=True):
+            if not name.strip():
+                st.error("Folder name required")
+            else:
+                target = str(Path(parent).expanduser() / name.strip())
+                ok, msg = grant_workspace(services, target)
+                if ok:
+                    st.success(f"Created & granted: {msg}")
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+    return False
+
+
+def render_artifacts_panel(services: dict[str, Any]) -> None:
+    ws = services.get("workspace")
+    st.markdown('<div class="section-label">Artifacts</div>', unsafe_allow_html=True)
+    st.caption("Files agents wrote/edited + .agentforge/specs — preview & download")
+
+    if ws is None:
+        st.caption("Workspace service not available")
+        return
+
+    files = ws.combined_files(limit=50)
+    if not files:
+        st.caption("No artifacts yet — run a task that writes files or specs")
+        return
+
+    labels = [f"{f['path']} ({f.get('kind', '?')})" for f in files]
+    idx = st.selectbox(
+        "File",
+        range(len(labels)),
+        format_func=lambda i: labels[i],
+        key="artifact_select",
+    )
+    chosen = files[idx]
+    rel = chosen["path"]
+    preview = ws.read_preview(rel)
+    if not preview.get("ok"):
+        st.warning(preview.get("error") or "cannot read")
+        return
+
+    st.caption(f"{preview.get('abs', rel)} · {preview.get('size', 0)} bytes")
+    text = preview.get("text") or ""
+    lang = "markdown" if rel.endswith(".md") else "python" if rel.endswith(".py") else "text"
+    st.code(text, language=lang)
+
+    raw = ws.read_bytes(rel)
+    if raw is not None:
+        st.download_button(
+            label="Download",
+            data=raw,
+            file_name=Path(rel).name,
+            mime="text/plain",
+            key=f"dl_{rel}",
+            use_container_width=True,
+        )
 
 
 st.set_page_config(
@@ -102,11 +237,6 @@ st.markdown(
         color: #f3f4f6;
         letter-spacing: -0.03em;
     }
-    .header-meta {
-        color: #6b7280;
-        font-size: 0.85rem;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
     .event-line {
         font-size: 0.75rem;
         color: #9ca3af;
@@ -122,7 +252,6 @@ st.markdown(
 
 def get_services():
     if "services" not in st.session_state:
-        # Bootstrap root only for tool init — not treated as user-granted workspace
         boot_root = Path.cwd().resolve()
         session_svc = SessionService()
         perm_svc = PermissionService()
@@ -238,7 +367,6 @@ def get_services():
         st.session_state.active_session_id = st.session_state.get("active_session_id")
         st.session_state.fetched_models = st.session_state.get("fetched_models", {})
         st.session_state.model_fetch_error = st.session_state.get("model_fetch_error", "")
-        # Do NOT auto-grant cwd — user must grant explicitly
         if "workspace_granted" not in st.session_state:
             st.session_state.workspace_granted = False
         if "workspace_root" not in st.session_state:
@@ -470,8 +598,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # —— Workspace gate: no chat / agents until granted ——
-    if not render_workspace_gate(st, services):
+    if not render_workspace_gate(services):
         return
 
     if not model:
@@ -547,7 +674,7 @@ def main():
                 st.session_state.messages.append({"role": "assistant", "content": reply})
 
     with col_side:
-        render_artifacts_panel(st, services)
+        render_artifacts_panel(services)
 
         st.markdown('<div class="section-label" style="margin-top:1rem">Multi-agent</div>', unsafe_allow_html=True)
         tree = services["runtime"].get_agent_tree(session.session_id)
