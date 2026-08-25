@@ -160,6 +160,27 @@ def get_services():
         tool_reg.register(WebSearchTool())
         tool_reg.register(WebFetchTool())
 
+        # PinchTab + AgentReach — fail soft so app never crashes on missing optional tools
+        try:
+            from src.tools.pinchtab_tool import PinchTabTool
+
+            def _pt_url():
+                return st.session_state.get("credentials", {}).get("pinchtab_url") or "http://127.0.0.1:9867"
+
+            def _pt_token():
+                return st.session_state.get("credentials", {}).get("pinchtab_token")
+
+            tool_reg.register(PinchTabTool(get_base_url=_pt_url, get_token=_pt_token))
+        except Exception as e:
+            st.session_state["pinchtab_load_error"] = str(e)[:200]
+
+        try:
+            from src.tools.agent_reach_tool import AgentReachTool
+
+            tool_reg.register(AgentReachTool())
+        except Exception as e:
+            st.session_state["agent_reach_load_error"] = str(e)[:200]
+
         source = Path(__file__).resolve().parent / "knowledge" / "source_headings.md"
         if source.exists():
             ctx_svc.load_source(source)
@@ -402,6 +423,24 @@ def main():
         )
         if gh:
             st.session_state.credentials["github"] = gh
+
+        st.caption("Browser (PinchTab) — only if local server is running")
+        pt_url = st.text_input(
+            "PinchTab URL",
+            value=st.session_state.credentials.get("pinchtab_url", "http://127.0.0.1:9867"),
+            help="Default http://127.0.0.1:9867. Start with: pinchtab server",
+            key="pinchtab_url_input",
+        )
+        if pt_url:
+            st.session_state.credentials["pinchtab_url"] = pt_url.rstrip("/")
+        pt_tok = st.text_input(
+            "PinchTab token (optional)",
+            type="password",
+            value=st.session_state.credentials.get("pinchtab_token", ""),
+            key="pinchtab_token_input",
+        )
+        if pt_tok is not None:
+            st.session_state.credentials["pinchtab_token"] = pt_tok
 
         if services.get("skills"):
             skill_count = len(getattr(services["skills"], "_skills", {}) or {})
