@@ -6,11 +6,15 @@ from pydantic import BaseModel, Field
 
 from src.tools.base import Tool, ToolResult
 from src.services.optmem_service import OptMemStore
+from src.services.session_memory import SessionMemoryService
 
 
 class MemoryInput(BaseModel):
     action: str = Field(
-        description="One of: wake, note, nap, recall, zoom, forget, init"
+        description=(
+            "One of: wake, note, nap, recall, zoom, forget, init, "
+            "session_list, session_files, session_recall"
+        )
     )
     text: str = Field(default="", description="Note body or nap summary")
     pattern: str = Field(default="", description="Regex for recall")
@@ -36,12 +40,9 @@ def _parse_range(range_str: str, lo: int, hi: int) -> tuple[int, int]:
 class MemoryTool(Tool):
     name = "memory"
     description = (
-        "Permanent agent memory (OptMem-style). "
-        "wake=read hierarchical memory at session start; "
-        "note=append one durable fact (max 280 chars); "
-        "nap=compress a power-of-two range into a summary; "
-        "recall=regex search all memories; "
-        "zoom=open a tree node; forget=drop a bad summary; init=create store."
+        "Agent memory: durable facts (OptMem) + progressive session recall (auto-memory). "
+        "wake=durable + recent sessions; note/nap/recall/zoom/forget=durable log; "
+        "session_list / session_files / session_recall=recent work without re-exploring; init=create store."
     )
     risk = "low"
     input_schema = MemoryInput
@@ -49,7 +50,7 @@ class MemoryTool(Tool):
     def __init__(self, project_root: str | None = None):
         self.project_root = project_root
 
-    def _store(self, runtime: Any = None) -> OptMemStore:
+    def _project_root(self, runtime: Any = None) -> str | None:
         root = self.project_root
         if runtime is not None:
             session = getattr(runtime, "sessions", None)
@@ -59,7 +60,13 @@ class MemoryTool(Tool):
                     st = session.get(sid)
                     if st and st.project_root:
                         root = st.project_root
-        return OptMemStore(project_root=root)
+        return root
+
+    def _store(self, runtime: Any = None) -> OptMemStore:
+        return OptMemStore(project_root=self._project_root(runtime))
+
+    def _sessions(self, runtime: Any = None) -> SessionMemoryService:
+        return SessionMemoryService(project_root=self._project_root(runtime))
 
     async def execute(self, input_data: dict[str, Any], runtime: Any = None) -> ToolResult:
         action = (input_data.get("action") or "").strip().lower()
@@ -70,8 +77,34 @@ class MemoryTool(Tool):
                 return ToolResult(success=True, output=msg, data={"path": str(store.root)})
 
             if action == "wake":
-                out = store.wake()
+                parts = [store.wake()]
+                sess_block = self._sessions(runtime).wake_block(5)
+                if sess_block:
+                    parts.append(sess_block)
+                out = "\n\n".join(parts)
                 return ToolResult(success=True, output=out, data={"count": store.count()})
+
+            if action == "session_list":
+                out = self._sessions(runtime).format_list(int(input_data.get("lo") or 10) or 10)
+                return ToolResult(success=True, output=out)
+
+            if action == "session_files":
+                out = self._sessions(runtime).format_files(int(input_data.get("lo") or 20) or 20)
+                return ToolResult(success=True, output=out)
+
+            if action == "session_recall":
+                q = (input_data.get("pattern") or input_data.get("text") or "").strip()
+                hits = self._sessions(runtime).recall(q, limit=8)
+                if not hits:
+                    return ToolResult(success=True, output="No matching sessions.")
+                lines = [f"Session recall for '{q or 'recent'}':"]
+                for ep in hits:
+                    lines.append(f"- [{(ep.get('ts') or '')[:16]}] {ep.get('objective', '')[:100]}")
+                    if ep.get("summary"):
+                        lines.append(f"  {ep['summary'][:120]}")
+                    if ep.get("files"):
+                        lines.append(f"  files: {', '.join(ep['files'][:6])}")
+                return ToolResult(success=True, output="\n".join(lines), data={"hits": len(hits)})
 
             if action == "note":
                 text = (input_data.get("text") or "").strip()
@@ -133,7 +166,10 @@ class MemoryTool(Tool):
             return ToolResult(
                 success=False,
                 output="",
-                error=f"unknown action '{action}'. Use: wake, note, nap, recall, zoom, forget, init",
+                error=(
+                    f"unknown action '{action}'. Use: wake, note, nap, recall, zoom, forget, init, "
+                    "session_list, session_files, session_recall"
+                ),
             )
         except Exception as e:
             return ToolResult(success=False, output="", error=str(e)[:400])
