@@ -62,21 +62,21 @@ DOMAIN_PRIMARY_SKILL: dict[str, str] = {
 }
 
 DOMAIN_TOOLS: dict[str, list[str]] = {
-    "orchestrator": ["read", "search", "github", "web_search", "web_fetch", "pinchtab", "agent_reach"],
-    "research": ["web_search", "web_fetch", "read", "search", "bash", "github", "pinchtab", "agent_reach"],
-    "implementation": ["read", "write", "edit", "search", "bash", "web_search"],
-    "code-review": ["read", "search", "github", "web_search", "web_fetch"],
-    "testing": ["read", "write", "edit", "search", "bash", "web_search"],
-    "git": ["bash", "read", "search", "github", "web_search"],
-    "frontend": ["read", "write", "edit", "search", "bash", "web_search"],
-    "backend": ["read", "write", "edit", "search", "bash", "web_search"],
-    "security": ["read", "search", "bash", "web_search"],
-    "docs": ["read", "write", "edit", "search", "web_search", "web_fetch", "agent_reach"],
-    "browser": ["web_search", "web_fetch", "pinchtab", "agent_reach", "bash", "read", "search"],
-    "tools": ["bash", "read", "search", "web_search"],
-    "memory": ["read", "write", "edit", "search"],
-    "planning": ["read", "search", "web_search", "write", "edit"],
-    "general": ["web_search", "web_fetch", "read", "write", "edit", "search", "bash", "github", "pinchtab", "agent_reach"],
+    "orchestrator": ["read", "search", "github", "web_search", "web_fetch", "pinchtab", "agent_reach", "memory"],
+    "research": ["web_search", "web_fetch", "read", "search", "bash", "github", "pinchtab", "agent_reach", "memory"],
+    "implementation": ["read", "write", "edit", "search", "bash", "web_search", "memory"],
+    "code-review": ["read", "search", "github", "web_search", "web_fetch", "memory"],
+    "testing": ["read", "write", "edit", "search", "bash", "web_search", "memory"],
+    "git": ["bash", "read", "search", "github", "web_search", "memory"],
+    "frontend": ["read", "write", "edit", "search", "bash", "web_search", "memory"],
+    "backend": ["read", "write", "edit", "search", "bash", "web_search", "memory"],
+    "security": ["read", "search", "bash", "web_search", "memory"],
+    "docs": ["read", "write", "edit", "search", "web_search", "web_fetch", "agent_reach", "memory"],
+    "browser": ["web_search", "web_fetch", "pinchtab", "agent_reach", "bash", "read", "search", "memory"],
+    "tools": ["bash", "read", "search", "web_search", "memory"],
+    "memory": ["memory", "read", "search"],
+    "planning": ["read", "search", "web_search", "write", "edit", "memory"],
+    "general": ["web_search", "web_fetch", "read", "write", "edit", "search", "bash", "github", "pinchtab", "agent_reach", "memory"],
 }
 
 IMPLEMENTATION_DOMAINS = frozenset(
