@@ -53,6 +53,7 @@ class PermissionService:
             "web_fetch",
             "pinchtab",
             "agent_reach",
+            "memory",
         ):
             req = PermissionRequest(
                 session_id=session_id,
