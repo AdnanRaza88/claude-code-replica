@@ -23,6 +23,7 @@ from src.services.desktop_status import (
     host_block_packet,
     host_next_packet,
     host_copy_packet,
+    host_brief_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -158,3 +159,8 @@ async def desktop_host_next():
 @router.get("/desktop/host-copy")
 async def desktop_host_copy():
     return host_copy_packet()
+
+
+@router.get("/desktop/host-brief")
+async def desktop_host_brief():
+    return host_brief_packet()
