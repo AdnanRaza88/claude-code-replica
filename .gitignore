@@ -19,3 +19,8 @@ build/
 session_data/
 artifacts/
 scratchpad/
+.agentforge/optmem/
+.agentforge/sessions/
+.agentforge/settings.json
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
