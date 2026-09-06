@@ -25,6 +25,7 @@ from src.services.desktop_status import (
     host_copy_packet,
     host_brief_packet,
     host_line_packet,
+    host_now_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -170,3 +171,8 @@ async def desktop_host_brief():
 @router.get("/desktop/host-line")
 async def desktop_host_line():
     return host_line_packet()
+
+
+@router.get("/desktop/host-now")
+async def desktop_host_now():
+    return host_now_packet()
