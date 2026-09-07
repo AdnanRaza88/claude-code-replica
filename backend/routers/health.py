@@ -49,6 +49,7 @@ from src.services.desktop_status import (
     host_fit_packet,
     host_cue_packet,
     host_tap_packet,
+    host_aim_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -314,3 +315,8 @@ async def desktop_host_cue():
 @router.get("/desktop/host-tap")
 async def desktop_host_tap():
     return host_tap_packet()
+
+
+@router.get("/desktop/host-aim")
+async def desktop_host_aim():
+    return host_aim_packet()
