@@ -44,6 +44,7 @@ from src.services.desktop_status import (
     host_note_packet,
     host_flag_packet,
     host_seal_packet,
+    host_sign_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -284,3 +285,8 @@ async def desktop_host_flag():
 @router.get("/desktop/host-seal")
 async def desktop_host_seal():
     return host_seal_packet()
+
+
+@router.get("/desktop/host-sign")
+async def desktop_host_sign():
+    return host_sign_packet()
