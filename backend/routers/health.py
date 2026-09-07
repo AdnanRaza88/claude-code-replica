@@ -27,6 +27,8 @@ from src.services.desktop_status import (
     host_line_packet,
     host_now_packet,
     host_pin_packet,
+    host_go_packet,
+    host_run_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -182,3 +184,13 @@ async def desktop_host_now():
 @router.get("/desktop/host-pin")
 async def desktop_host_pin():
     return host_pin_packet()
+
+
+@router.get("/desktop/host-go")
+async def desktop_host_go():
+    return host_go_packet()
+
+
+@router.get("/desktop/host-run")
+async def desktop_host_run():
+    return host_run_packet()
