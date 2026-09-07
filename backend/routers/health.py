@@ -29,6 +29,7 @@ from src.services.desktop_status import (
     host_pin_packet,
     host_go_packet,
     host_run_packet,
+    host_watch_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -194,3 +195,8 @@ async def desktop_host_go():
 @router.get("/desktop/host-run")
 async def desktop_host_run():
     return host_run_packet()
+
+
+@router.get("/desktop/host-watch")
+async def desktop_host_watch():
+    return host_watch_packet()
