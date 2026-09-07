@@ -41,6 +41,7 @@ from src.services.desktop_status import (
     host_mark_packet,
     host_stamp_packet,
     host_ack_packet,
+    host_note_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -266,3 +267,8 @@ async def desktop_host_stamp():
 @router.get("/desktop/host-ack")
 async def desktop_host_ack():
     return host_ack_packet()
+
+
+@router.get("/desktop/host-note")
+async def desktop_host_note():
+    return host_note_packet()
