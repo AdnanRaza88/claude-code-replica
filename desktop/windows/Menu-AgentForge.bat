@@ -13,6 +13,8 @@ echo  6 First run
 echo  7 Repair
 echo  8 Collect logs
 echo  9 Ready check
+echo  ok Host ok packet
+echo  fit Host fit packet
 echo  W Welcome
 echo  G Guide
 echo  P Preflight
@@ -26,6 +28,7 @@ echo  C Phase-4 closeout
 echo  ' Host ack (operator acknowledgement)
 echo  ` Host note
 echo  : Host flag
+echo  ^^ Host seal
 echo  T Phase-4 gate
 echo  K Windows smoke checklist
 echo  N Onboard card
@@ -127,5 +130,9 @@ if "%CHOICE%"=="." call "%~dp0HostStamp-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="'" call "%~dp0HostAck-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="`" call "%~dp0HostNote-AgentForge.bat" & goto :eof
 if "%CHOICE%"==":" call "%~dp0HostFlag-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="^" call "%~dp0HostSeal-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="<" call "%~dp0HostSign-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="ok" call "%~dp0HostOk-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="fit" call "%~dp0HostFit-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
