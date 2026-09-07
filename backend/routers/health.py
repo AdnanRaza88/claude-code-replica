@@ -40,6 +40,7 @@ from src.services.desktop_status import (
     host_echo_packet,
     host_mark_packet,
     host_stamp_packet,
+    host_ack_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -260,3 +261,8 @@ async def desktop_host_mark():
 @router.get("/desktop/host-stamp")
 async def desktop_host_stamp():
     return host_stamp_packet()
+
+
+@router.get("/desktop/host-ack")
+async def desktop_host_ack():
+    return host_ack_packet()
