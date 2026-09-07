@@ -36,6 +36,7 @@ from src.services.desktop_status import (
     host_stay_packet,
     host_keep_packet,
     host_sync_packet,
+    host_lock_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -236,3 +237,8 @@ async def desktop_host_keep():
 @router.get("/desktop/host-sync")
 async def desktop_host_sync():
     return host_sync_packet()
+
+
+@router.get("/desktop/host-lock")
+async def desktop_host_lock():
+    return host_lock_packet()
