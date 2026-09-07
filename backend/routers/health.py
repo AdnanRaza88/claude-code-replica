@@ -48,6 +48,7 @@ from src.services.desktop_status import (
     host_ok_packet,
     host_fit_packet,
     host_cue_packet,
+    host_tap_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -308,3 +309,8 @@ async def desktop_host_fit():
 @router.get("/desktop/host-cue")
 async def desktop_host_cue():
     return host_cue_packet()
+
+
+@router.get("/desktop/host-tap")
+async def desktop_host_tap():
+    return host_tap_packet()
