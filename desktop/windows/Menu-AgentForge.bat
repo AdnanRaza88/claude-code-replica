@@ -54,6 +54,7 @@ echo  ^> Host pin (PIN version + command)
 echo  { Host go (GO version + command)
 echo  ( Host wait (poll /health after Setup)
 echo  _ Host stay (Accept Signoff Closeout on Windows)
+echo  - Host keep (Start then Accept Signoff Closeout)
 echo  U Open UI
 echo  0 Quit
 echo.
@@ -74,8 +75,8 @@ if /I "%CHOICE%"=="V" call "%~dp0VerifyInstall-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="H" call "%~dp0Handoff-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="S" call "%~dp0Signoff-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="A" call "%~dp0Accept-AgentForge.bat" & goto :eof
-if /I "%CHOICE%"=="O" call "%~dp0Operator-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="R" call "%~dp0Release-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="O" call "%~dp0Operator-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="C" call "%~dp0Closeout-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="T" call "%~dp0Gate-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="K" call "%~dp0WindowsSmoke-AgentForge.bat" & goto :eof
@@ -112,5 +113,6 @@ if "%CHOICE%"=="]" call "%~dp0HostPull-AgentForge.bat" & goto :eof
 if "%CHOICE%"==")" call "%~dp0HostHold-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="(" call "%~dp0HostWait-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="_" call "%~dp0HostStay-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="-" call "%~dp0HostKeep-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
