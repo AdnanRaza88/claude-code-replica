@@ -23,6 +23,7 @@ echo  A Accept Windows /ui
 echo  R Release packet
 echo  O Operator runbook
 echo  C Phase-4 closeout
+echo  ' Host ack (operator acknowledgement)
 echo  T Phase-4 gate
 echo  K Windows smoke checklist
 echo  N Onboard card
@@ -118,5 +119,10 @@ if "%CHOICE%"=="_" call "%~dp0HostStay-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="-" call "%~dp0HostKeep-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="/" call "%~dp0HostSync-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="\" call "%~dp0HostLock-AgentForge.bat" & goto :eof
+if "%CHOICE%"==";" call "%~dp0HostEcho-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="," call "%~dp0HostMark-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="." call "%~dp0HostStamp-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="'" call "%~dp0HostAck-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="`" call "%~dp0HostNote-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
