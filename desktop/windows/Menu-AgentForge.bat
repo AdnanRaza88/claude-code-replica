@@ -24,6 +24,8 @@ echo  R Release packet
 echo  O Operator runbook
 echo  C Phase-4 closeout
 echo  ' Host ack (operator acknowledgement)
+echo  ` Host note
+echo  : Host flag
 echo  T Phase-4 gate
 echo  K Windows smoke checklist
 echo  N Onboard card
@@ -124,5 +126,6 @@ if "%CHOICE%"=="," call "%~dp0HostMark-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="." call "%~dp0HostStamp-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="'" call "%~dp0HostAck-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="`" call "%~dp0HostNote-AgentForge.bat" & goto :eof
+if "%CHOICE%"==":" call "%~dp0HostFlag-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
