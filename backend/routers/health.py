@@ -32,6 +32,7 @@ from src.services.desktop_status import (
     host_watch_packet,
     host_pull_packet,
     host_hold_packet,
+    host_wait_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -212,3 +213,8 @@ async def desktop_host_pull():
 @router.get("/desktop/host-hold")
 async def desktop_host_hold():
     return host_hold_packet()
+
+
+@router.get("/desktop/host-wait")
+async def desktop_host_wait():
+    return host_wait_packet()

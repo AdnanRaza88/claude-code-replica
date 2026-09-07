@@ -52,6 +52,7 @@ echo  ^| Host line (pipe-ready command)
 echo  ? Host now (NOW: command + why)
 echo  ^> Host pin (PIN version + command)
 echo  { Host go (GO version + command)
+echo  ( Host wait (poll /health after Setup)
 echo  U Open UI
 echo  0 Quit
 echo.
@@ -107,5 +108,7 @@ if "%CHOICE%"=="{" call "%~dp0HostGo-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="}" call "%~dp0HostRun-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="[" call "%~dp0HostWatch-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="]" call "%~dp0HostPull-AgentForge.bat" & goto :eof
+if "%CHOICE%"==")" call "%~dp0HostHold-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="(" call "%~dp0HostWait-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
