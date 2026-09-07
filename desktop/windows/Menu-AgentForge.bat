@@ -56,6 +56,7 @@ echo  ( Host wait (poll /health after Setup)
 echo  _ Host stay (Accept Signoff Closeout on Windows)
 echo  - Host keep (Start then Accept Signoff Closeout)
 echo  / Host sync (gh workflow run then Start Accept Signoff Closeout)
+echo  \ Host lock (freeze next host command to host.lock.json)
 echo  U Open UI
 echo  0 Quit
 echo.
@@ -116,5 +117,6 @@ if "%CHOICE%"=="(" call "%~dp0HostWait-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="_" call "%~dp0HostStay-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="-" call "%~dp0HostKeep-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="/" call "%~dp0HostSync-AgentForge.bat" & goto :eof
+if "%CHOICE%"=="\" call "%~dp0HostLock-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
