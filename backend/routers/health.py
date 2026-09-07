@@ -46,6 +46,7 @@ from src.services.desktop_status import (
     host_seal_packet,
     host_sign_packet,
     host_ok_packet,
+    host_fit_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -296,3 +297,8 @@ async def desktop_host_sign():
 @router.get("/desktop/host-ok")
 async def desktop_host_ok():
     return host_ok_packet()
+
+
+@router.get("/desktop/host-fit")
+async def desktop_host_fit():
+    return host_fit_packet()
