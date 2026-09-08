@@ -56,6 +56,7 @@ from src.services.desktop_status import (
     host_row_packet,
     host_key_packet,
     host_pad_packet,
+    host_tab_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -356,3 +357,8 @@ async def desktop_host_key():
 @router.get("/desktop/host-pad")
 async def desktop_host_pad():
     return host_pad_packet()
+
+
+@router.get("/desktop/host-tab")
+async def desktop_host_tab():
+    return host_tab_packet()
