@@ -65,6 +65,7 @@ from src.services.desktop_status import (
     host_net_packet,
     host_bus_packet,
     host_way_packet,
+    host_arc_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -410,3 +411,8 @@ async def desktop_host_bus():
 @router.get("/desktop/host-way")
 async def desktop_host_way():
     return host_way_packet()
+
+
+@router.get("/desktop/host-arc")
+async def desktop_host_arc():
+    return host_arc_packet()
