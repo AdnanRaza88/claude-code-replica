@@ -74,6 +74,7 @@ from src.services.desktop_status import (
     host_yew_packet,
     host_ivy_packet,
     host_bay_packet,
+    host_fig_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -464,3 +465,8 @@ async def desktop_host_ivy():
 @router.get("/desktop/host-bay")
 async def desktop_host_bay():
     return host_bay_packet()
+
+
+@router.get("/desktop/host-fig")
+async def desktop_host_fig():
+    return host_fig_packet()
