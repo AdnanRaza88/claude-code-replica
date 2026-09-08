@@ -66,6 +66,7 @@ from src.services.desktop_status import (
     host_bus_packet,
     host_way_packet,
     host_arc_packet,
+    host_rim_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -416,3 +417,8 @@ async def desktop_host_way():
 @router.get("/desktop/host-arc")
 async def desktop_host_arc():
     return host_arc_packet()
+
+
+@router.get("/desktop/host-rim")
+async def desktop_host_rim():
+    return host_rim_packet()
