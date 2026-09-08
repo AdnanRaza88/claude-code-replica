@@ -76,6 +76,7 @@ from src.services.desktop_status import (
     host_bay_packet,
     host_fig_packet,
     host_tea_packet,
+    host_dew_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -476,3 +477,8 @@ async def desktop_host_fig():
 @router.get("/desktop/host-tea")
 async def desktop_host_tea():
     return host_tea_packet()
+
+
+@router.get("/desktop/host-dew")
+async def desktop_host_dew():
+    return host_dew_packet()
