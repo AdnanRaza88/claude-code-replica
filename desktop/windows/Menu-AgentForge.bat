@@ -14,7 +14,6 @@ echo  7 Repair
 echo  8 Collect logs
 echo  9 Ready check
 echo  ok Host ok packet
-echo  fit Host fit packet
 echo  W Welcome
 echo  G Guide
 echo  P Preflight
@@ -134,5 +133,12 @@ if "%CHOICE%"=="^" call "%~dp0HostSeal-AgentForge.bat" & goto :eof
 if "%CHOICE%"=="<" call "%~dp0HostSign-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="ok" call "%~dp0HostOk-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="fit" call "%~dp0HostFit-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="cue" call "%~dp0HostCue-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="tap" call "%~dp0HostTap-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="aim" call "%~dp0HostAim-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="fix" call "%~dp0HostFix-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="set" call "%~dp0HostSet-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="map" call "%~dp0HostMap-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="row" call "%~dp0HostRow-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
