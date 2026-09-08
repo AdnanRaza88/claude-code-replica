@@ -67,6 +67,7 @@ from src.services.desktop_status import (
     host_way_packet,
     host_arc_packet,
     host_rim_packet,
+    host_oak_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -422,3 +423,8 @@ async def desktop_host_arc():
 @router.get("/desktop/host-rim")
 async def desktop_host_rim():
     return host_rim_packet()
+
+
+@router.get("/desktop/host-oak")
+async def desktop_host_oak():
+    return host_oak_packet()
