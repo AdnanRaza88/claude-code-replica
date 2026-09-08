@@ -70,6 +70,7 @@ from src.services.desktop_status import (
     host_oak_packet,
     host_elm_packet,
     host_ash_packet,
+    host_fir_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -440,3 +441,8 @@ async def desktop_host_elm():
 @router.get("/desktop/host-ash")
 async def desktop_host_ash():
     return host_ash_packet()
+
+
+@router.get("/desktop/host-fir")
+async def desktop_host_fir():
+    return host_fir_packet()
