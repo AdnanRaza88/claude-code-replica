@@ -145,5 +145,15 @@ if /I "%CHOICE%"=="pad" call "%~dp0HostPad-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="tab" call "%~dp0HostTab-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="bar" call "%~dp0HostBar-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="dot" call "%~dp0HostDot-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="cap" call "%~dp0HostCap-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="hub" call "%~dp0HostHub-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="lab" call "%~dp0HostLab-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="net" call "%~dp0HostNet-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="bus" call "%~dp0HostBus-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="way" call "%~dp0HostWay-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="arc" call "%~dp0HostArc-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="rim" call "%~dp0HostRim-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="oak" call "%~dp0HostOak-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="elm" call "%~dp0HostElm-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
