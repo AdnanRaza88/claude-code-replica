@@ -141,5 +141,9 @@ if /I "%CHOICE%"=="set" call "%~dp0HostSet-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="map" call "%~dp0HostMap-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="row" call "%~dp0HostRow-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="key" call "%~dp0HostKey-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="pad" call "%~dp0HostPad-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="tab" call "%~dp0HostTab-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="bar" call "%~dp0HostBar-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="dot" call "%~dp0HostDot-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
