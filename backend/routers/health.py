@@ -62,6 +62,7 @@ from src.services.desktop_status import (
     host_cap_packet,
     host_hub_packet,
     host_lab_packet,
+    host_net_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -392,3 +393,8 @@ async def desktop_host_hub():
 @router.get("/desktop/host-lab")
 async def desktop_host_lab():
     return host_lab_packet()
+
+
+@router.get("/desktop/host-net")
+async def desktop_host_net():
+    return host_net_packet()
