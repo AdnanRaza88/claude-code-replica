@@ -53,6 +53,7 @@ from src.services.desktop_status import (
     host_fix_packet,
     host_set_packet,
     host_map_packet,
+    host_row_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -338,3 +339,8 @@ async def desktop_host_set():
 @router.get("/desktop/host-map")
 async def desktop_host_map():
     return host_map_packet()
+
+
+@router.get("/desktop/host-row")
+async def desktop_host_row():
+    return host_row_packet()
