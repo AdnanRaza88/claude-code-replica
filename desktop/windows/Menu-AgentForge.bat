@@ -140,5 +140,6 @@ if /I "%CHOICE%"=="fix" call "%~dp0HostFix-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="set" call "%~dp0HostSet-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="map" call "%~dp0HostMap-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="row" call "%~dp0HostRow-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="key" call "%~dp0HostKey-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
