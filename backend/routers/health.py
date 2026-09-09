@@ -92,6 +92,7 @@ from src.services.desktop_status import (
     host_ink_packet,
     host_wax_packet,
     host_oil_packet,
+    host_sap_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -519,7 +520,6 @@ async def desktop_host_sea():
     return host_sea_packet()
 
 
-
 @router.get("/desktop/host-ice")
 async def desktop_host_ice():
     return host_ice_packet()
@@ -573,3 +573,8 @@ async def desktop_host_wax():
 @router.get("/desktop/host-oil")
 async def desktop_host_oil():
     return host_oil_packet()
+
+
+@router.get("/desktop/host-sap")
+async def desktop_host_sap():
+    return host_sap_packet()
