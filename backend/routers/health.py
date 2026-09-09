@@ -81,6 +81,8 @@ from src.services.desktop_status import (
     host_sun_packet,
     host_sky_packet,
     host_sea_packet,
+    host_ice_packet,
+    host_gem_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -506,3 +508,14 @@ async def desktop_host_sky():
 @router.get("/desktop/host-sea")
 async def desktop_host_sea():
     return host_sea_packet()
+
+
+
+@router.get("/desktop/host-ice")
+async def desktop_host_ice():
+    return host_ice_packet()
+
+
+@router.get("/desktop/host-gem")
+async def desktop_host_gem():
+    return host_gem_packet()
