@@ -172,5 +172,10 @@ if /I "%CHOICE%"=="gem" call "%~dp0HostGem-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="ore" call "%~dp0HostOre-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="tin" call "%~dp0HostTin-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="lead" call "%~dp0HostLead-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="zinc" call "%~dp0HostZinc-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="iron" call "%~dp0HostIron-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="gold" call "%~dp0HostGold-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="ink" call "%~dp0HostInk-AgentForge.bat" & goto :eof
+if /I "%CHOICE%"=="wax" call "%~dp0HostWax-AgentForge.bat" & goto :eof
 if /I "%CHOICE%"=="U" call "%~dp0Open-UI-AgentForge.bat" & goto :eof
 endlocal
