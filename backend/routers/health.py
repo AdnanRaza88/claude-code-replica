@@ -80,6 +80,7 @@ from src.services.desktop_status import (
     host_fog_packet,
     host_sun_packet,
     host_sky_packet,
+    host_sea_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -500,3 +501,8 @@ async def desktop_host_sun():
 @router.get("/desktop/host-sky")
 async def desktop_host_sky():
     return host_sky_packet()
+
+
+@router.get("/desktop/host-sea")
+async def desktop_host_sea():
+    return host_sea_packet()
