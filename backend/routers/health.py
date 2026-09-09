@@ -79,6 +79,7 @@ from src.services.desktop_status import (
     host_dew_packet,
     host_fog_packet,
     host_sun_packet,
+    host_sky_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -494,3 +495,8 @@ async def desktop_host_fog():
 @router.get("/desktop/host-sun")
 async def desktop_host_sun():
     return host_sun_packet()
+
+
+@router.get("/desktop/host-sky")
+async def desktop_host_sky():
+    return host_sky_packet()
