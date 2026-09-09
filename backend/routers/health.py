@@ -94,6 +94,7 @@ from src.services.desktop_status import (
     host_oil_packet,
     host_sap_packet,
     host_tar_packet,
+    host_web_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -584,3 +585,8 @@ async def desktop_host_sap():
 @router.get("/desktop/host-tar")
 async def desktop_host_tar():
     return host_tar_packet()
+
+
+@router.get("/desktop/host-web")
+async def desktop_host_web():
+    return host_web_packet()
