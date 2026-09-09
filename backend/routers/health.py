@@ -83,6 +83,7 @@ from src.services.desktop_status import (
     host_sea_packet,
     host_ice_packet,
     host_gem_packet,
+    host_ore_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -519,3 +520,8 @@ async def desktop_host_ice():
 @router.get("/desktop/host-gem")
 async def desktop_host_gem():
     return host_gem_packet()
+
+
+@router.get("/desktop/host-ore")
+async def desktop_host_ore():
+    return host_ore_packet()
