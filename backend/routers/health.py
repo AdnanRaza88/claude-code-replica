@@ -89,6 +89,7 @@ from src.services.desktop_status import (
     host_zinc_packet,
     host_iron_packet,
     host_gold_packet,
+    host_ink_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -554,3 +555,8 @@ async def desktop_host_iron():
 @router.get("/desktop/host-gold")
 async def desktop_host_gold():
     return host_gold_packet()
+
+
+@router.get("/desktop/host-ink")
+async def desktop_host_ink():
+    return host_ink_packet()
