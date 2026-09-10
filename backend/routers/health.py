@@ -110,6 +110,7 @@ from src.services.desktop_status import (
     host_peak_packet,
     host_vale_packet,
     host_glen_packet,
+    host_ford_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -680,3 +681,8 @@ async def desktop_host_vale():
 @router.get("/desktop/host-glen")
 async def desktop_host_glen():
     return host_glen_packet()
+
+
+@router.get("/desktop/host-ford")
+async def desktop_host_ford():
+    return host_ford_packet()
