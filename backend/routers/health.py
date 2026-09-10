@@ -101,6 +101,15 @@ from src.services.desktop_status import (
     host_mist_packet,
     host_haze_packet,
     host_dawn_packet,
+    host_dusk_packet,
+    host_eve_packet,
+    host_moon_packet,
+    host_star_packet,
+    host_apex_packet,
+    host_ridge_packet,
+    host_peak_packet,
+    host_vale_packet,
+    host_glen_packet,
     windows_host_packet,
     windows_path_packet,
 )
@@ -528,7 +537,6 @@ async def desktop_host_sea():
     return host_sea_packet()
 
 
-
 @router.get("/desktop/host-ice")
 async def desktop_host_ice():
     return host_ice_packet()
@@ -627,3 +635,48 @@ async def desktop_host_haze():
 @router.get("/desktop/host-dawn")
 async def desktop_host_dawn():
     return host_dawn_packet()
+
+
+@router.get("/desktop/host-dusk")
+async def desktop_host_dusk():
+    return host_dusk_packet()
+
+
+@router.get("/desktop/host-eve")
+async def desktop_host_eve():
+    return host_eve_packet()
+
+
+@router.get("/desktop/host-moon")
+async def desktop_host_moon():
+    return host_moon_packet()
+
+
+@router.get("/desktop/host-star")
+async def desktop_host_star():
+    return host_star_packet()
+
+
+@router.get("/desktop/host-apex")
+async def desktop_host_apex():
+    return host_apex_packet()
+
+
+@router.get("/desktop/host-ridge")
+async def desktop_host_ridge():
+    return host_ridge_packet()
+
+
+@router.get("/desktop/host-peak")
+async def desktop_host_peak():
+    return host_peak_packet()
+
+
+@router.get("/desktop/host-vale")
+async def desktop_host_vale():
+    return host_vale_packet()
+
+
+@router.get("/desktop/host-glen")
+async def desktop_host_glen():
+    return host_glen_packet()
