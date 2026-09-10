@@ -1,126 +1,76 @@
 from fastapi import APIRouter
 
-from src.services.desktop_status import (
-    ci_go_packet,
-    ci_install_packet,
-    ci_verify_packet,
-    ci_pull_packet,
-    ci_trigger_packet,
-    ci_watch_packet,
-    desktop_status,
-    onboard_packet,
-    product_version,
-    pack_check_packet,
-    ci_artifacts_packet,
-    ci_drop_packet,
-    ci_apply_packet,
-    ci_finish_packet,
-    ci_live_packet,
-    ci_boot_packet,
-    ci_seal_packet,
-    ci_exit_packet,
-    remain_packet,
-    host_block_packet,
-    host_next_packet,
-    host_copy_packet,
-    host_brief_packet,
-    host_line_packet,
-    host_now_packet,
-    host_pin_packet,
-    host_go_packet,
-    host_run_packet,
-    host_watch_packet,
-    host_pull_packet,
-    host_hold_packet,
-    host_wait_packet,
-    host_stay_packet,
-    host_keep_packet,
-    host_sync_packet,
-    host_lock_packet,
-    host_echo_packet,
-    host_mark_packet,
-    host_stamp_packet,
-    host_ack_packet,
-    host_note_packet,
-    host_flag_packet,
-    host_seal_packet,
-    host_sign_packet,
-    host_ok_packet,
-    host_fit_packet,
-    host_cue_packet,
-    host_tap_packet,
-    host_aim_packet,
-    host_fix_packet,
-    host_set_packet,
-    host_map_packet,
-    host_row_packet,
-    host_key_packet,
-    host_pad_packet,
-    host_tab_packet,
-    host_bar_packet,
-    host_dot_packet,
-    host_cap_packet,
-    host_hub_packet,
-    host_lab_packet,
-    host_net_packet,
-    host_bus_packet,
-    host_way_packet,
-    host_arc_packet,
-    host_rim_packet,
-    host_oak_packet,
-    host_elm_packet,
-    host_ash_packet,
-    host_fir_packet,
-    host_yew_packet,
-    host_ivy_packet,
-    host_bay_packet,
-    host_fig_packet,
-    host_tea_packet,
-    host_dew_packet,
-    host_fog_packet,
-    host_sun_packet,
-    host_sky_packet,
-    host_sea_packet,
-    host_ice_packet,
-    host_gem_packet,
-    host_ore_packet,
-    host_tin_packet,
-    host_lead_packet,
-    host_zinc_packet,
-    host_iron_packet,
-    host_gold_packet,
-    host_ink_packet,
-    host_wax_packet,
-    host_oil_packet,
-    host_sap_packet,
-    host_tar_packet,
-    host_web_packet,
-    host_ray_packet,
-    host_beam_packet,
-    host_glow_packet,
-    host_mist_packet,
-    host_haze_packet,
-    host_dawn_packet,
-    host_dusk_packet,
-    host_eve_packet,
-    host_moon_packet,
-    host_star_packet,
-    host_apex_packet,
-    host_ridge_packet,
-    host_peak_packet,
-    host_vale_packet,
-    host_glen_packet,
-    host_ford_packet,
-    host_beck_packet,
-    host_mere_packet,
-    host_tarn_packet,
-    host_fell_packet,
-    host_holt_packet,
-    host_shaw_packet,
-    host_lea_packet,
-    host_mead_packet,
-    windows_host_packet,
-    windows_path_packet,
-)
+from src.services import desktop_status as ds
 
 router = APIRouter()
+
+STATIC = (
+    ("/health", "health_payload"),
+    ("/desktop/status", "desktop_status"),
+    ("/desktop/onboard", "onboard_packet"),
+    ("/desktop/windows-path", "windows_path_packet"),
+    ("/desktop/ci-trigger", "ci_trigger_packet"),
+    ("/desktop/ci-watch", "ci_watch_packet"),
+    ("/desktop/ci-pull", "ci_pull_packet"),
+    ("/desktop/ci-install", "ci_install_packet"),
+    ("/desktop/ci-verify", "ci_verify_packet"),
+    ("/desktop/ci-go", "ci_go_packet"),
+    ("/desktop/windows-host", "windows_host_packet"),
+    ("/desktop/pack-check", "pack_check_packet"),
+    ("/desktop/ci-artifacts", "ci_artifacts_packet"),
+    ("/desktop/ci-drop", "ci_drop_packet"),
+    ("/desktop/ci-apply", "ci_apply_packet"),
+    ("/desktop/ci-finish", "ci_finish_packet"),
+    ("/desktop/ci-live", "ci_live_packet"),
+    ("/desktop/ci-boot", "ci_boot_packet"),
+    ("/desktop/ci-seal", "ci_seal_packet"),
+    ("/desktop/ci-exit", "ci_exit_packet"),
+    ("/desktop/remain", "remain_packet"),
+)
+
+
+def health_payload():
+    snap = ds.desktop_status()
+    return {
+        "status": "ok",
+        "engine": "ready",
+        "product": "AgentForge",
+        "version": ds.product_version(),
+        "phase": snap["phase"],
+        "windows_accepted": snap["windows_accepted"],
+        "exit_met": snap["exit_met"],
+        "platform": snap["platform"],
+    }
+
+
+def _bind(path: str, fn):
+    async def endpoint():
+        return fn()
+
+    endpoint.__name__ = path.strip("/").replace("/", "_")
+    router.add_api_route(path, endpoint, methods=["GET"])
+
+
+for _path, _name in STATIC:
+    if _name == "health_payload":
+        _bind(_path, health_payload)
+    else:
+        _bind(_path, getattr(ds, _name))
+
+HOST_SLUGS = (
+    "block", "next", "copy", "brief", "line", "now", "pin", "go", "run",
+    "watch", "pull", "hold", "wait", "stay", "keep", "sync", "lock", "echo",
+    "mark", "stamp", "ack", "note", "flag", "seal", "sign", "ok", "fit",
+    "cue", "tap", "aim", "fix", "set", "map", "row", "key", "pad", "tab",
+    "bar", "dot", "cap", "hub", "lab", "net", "bus", "way", "arc", "rim",
+    "oak", "elm", "ash", "fir", "yew", "ivy", "bay", "fig", "tea", "dew",
+    "fog", "sun", "sky", "sea", "ice", "gem", "ore", "tin", "lead", "zinc",
+    "iron", "gold", "ink", "wax", "oil", "sap", "tar", "web", "ray", "beam",
+    "glow", "mist", "haze", "dawn", "dusk", "eve", "moon", "star", "apex",
+    "ridge", "peak", "vale", "glen", "ford", "beck", "mere", "tarn", "fell",
+    "holt", "shaw", "lea", "mead",
+)
+
+for _slug in HOST_SLUGS:
+    _fn = getattr(ds, f"host_{_slug.replace('-', '_')}_packet")
+    _bind(f"/desktop/host-{_slug}", _fn)
