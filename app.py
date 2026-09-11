@@ -34,3 +34,17 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+st.markdown(
+    """
+<style>
+    /* Professional clean look */
+    .stApp { background-color: #0f1117; }
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #141820 0%, #0f1117 100%);
+        border-right: 1px solid #1e2430;
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
