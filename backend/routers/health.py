@@ -69,6 +69,7 @@ HOST_SLUGS = (
     "glow", "mist", "haze", "dawn", "dusk", "eve", "moon", "star", "apex",
     "ridge", "peak", "vale", "glen", "ford", "beck", "mere", "tarn", "fell",
     "holt", "shaw", "lea", "mead", "wold", "moor", "fen", "reed", "rill",
+    "brook",
 )
 
 for _slug in HOST_SLUGS:
