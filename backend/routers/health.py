@@ -78,6 +78,7 @@ HOST_SLUGS = (
     "foss",
     "well",
     "pond",
+    "loch",
 )
 
 for _slug in HOST_SLUGS:
