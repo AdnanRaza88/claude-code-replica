@@ -72,6 +72,7 @@ HOST_SLUGS = (
     "brook",
     "weir",
     "keld",
+    "gill",
 )
 
 for _slug in HOST_SLUGS:
