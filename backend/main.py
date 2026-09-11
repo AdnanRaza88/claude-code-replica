@@ -24,9 +24,7 @@ from backend.routers import events, health, providers, run, sessions, settings, 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure workspace paths exist, load skills registry if needed
     yield
-    # Shutdown hooks if any
 
 
 app = FastAPI(
@@ -38,7 +36,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten for production desktop
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

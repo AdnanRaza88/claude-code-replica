@@ -27,14 +27,28 @@
         </label>
       </div>
     </header>
+
     <aside class="rail glass">
       <section>
         <h2>Session</h2>
-        <label class="field"><span>Provider</span><select id="provider"></select></label>
-        <label class="field"><span>Model</span><select id="model"></select></label>
-        <label class="field"><span>API key</span><input id="api-key" type="password" autocomplete="off" /></label>
-        <label class="field"><span>Workspace</span><input id="workspace" placeholder="project path" /></label>
-        <label class="field"><span>Permissions</span>
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider"></select>
+        </label>
+        <label class="field">
+          <span>Model</span>
+          <select id="model"></select>
+        </label>
+        <label class="field">
+          <span>API key</span>
+          <input id="api-key" type="password" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Workspace</span>
+          <input id="workspace" placeholder="project path" />
+        </label>
+        <label class="field">
+          <span>Permissions</span>
           <select id="perm-mode">
             <option value="session_allow">Allow for session</option>
             <option value="ask">Ask each tool</option>
@@ -47,62 +61,122 @@
         </div>
         <p id="session-line" class="hint">No session</p>
       </section>
+
       <section>
         <h2>Past sessions</h2>
         <ul id="session-list" class="plain"></ul>
       </section>
+
       <section>
         <h2>Catalog</h2>
         <p class="hint"><span id="tool-count">0</span> tools · <span id="skill-count">0</span> skills</p>
         <ul id="skill-domains" class="chips"></ul>
       </section>
+
       <section>
         <h2>Desktop gate</h2>
         <p id="gate-line" class="hint">Phase 4 …</p>
         <ul id="gate-remaining" class="plain"></ul>
       </section>
     </aside>
+
     <main class="stage">
       <section class="composer glass">
         <textarea id="objective" rows="3" placeholder="What should the agents do?"></textarea>
         <div class="row">
-          <label class="check"><input id="plan-only" type="checkbox" /> Plan only</label>
+          <label class="check">
+            <input id="plan-only" type="checkbox" />
+            Plan only
+          </label>
           <span id="run-status" class="hint">Idle</span>
           <button id="btn-run" type="button">Run</button>
         </div>
       </section>
+
       <section class="board">
-        <div class="pane glass"><h2>Agents</h2><div id="agent-tree" class="tree empty">No graph yet</div></div>
-        <div class="pane glass"><h2>Reasoning</h2><div id="stream" class="stream empty">Events appear here</div></div>
-        <div class="pane glass slim"><h2>Sources</h2><ul id="sources" class="plain empty-box"></ul><h2>Permissions</h2><ul id="perms" class="plain empty-box"></ul></div>
+        <div class="pane glass">
+          <h2>Agents</h2>
+          <div id="agent-tree" class="tree empty">No graph yet</div>
+        </div>
+        <div class="pane glass">
+          <h2>Reasoning</h2>
+          <div id="stream" class="stream empty">Events appear here</div>
+        </div>
+        <div class="pane glass slim">
+          <h2>Sources</h2>
+          <ul id="sources" class="plain empty-box"></ul>
+          <h2>Permissions</h2>
+          <ul id="perms" class="plain empty-box"></ul>
+        </div>
       </section>
     </main>
   </div>
   <div id="engine-layer" class="settings-layer hidden" role="status">
     <div class="settings-panel glass">
-      <header><div><h2>Engine starting</h2><p class="sub" id="engine-lead">Waiting for /health on the local FastAPI engine.</p></div></header>
+      <header>
+        <div>
+          <h2>Engine starting</h2>
+          <p class="sub" id="engine-lead">Waiting for /health on the local FastAPI engine.</p>
+        </div>
+      </header>
       <p class="hint" id="engine-msg">Retrying every 2s. If this stays up, run Doctor-AgentForge.bat.</p>
     </div>
   </div>
   <div id="settings-layer" class="settings-layer hidden" role="dialog" aria-modal="true">
     <div class="settings-panel glass">
       <header>
-        <div><h2 id="settings-title">First run</h2><p class="hint" id="settings-lead">Save provider keys and local tool endpoints.</p></div>
+        <div>
+          <h2 id="settings-title">First run</h2>
+          <p class="hint" id="settings-lead">Save provider keys and local tool endpoints. Values stay in .agentforge/settings.json.</p>
+        </div>
         <button id="btn-settings-close" type="button" class="ghost">Close</button>
       </header>
       <form id="settings-form">
         <div class="settings-grid">
-          <label class="field"><span>Gemini API key</span><input id="set-gemini" type="password" autocomplete="off" /></label>
-          <label class="field"><span>OpenCode API key</span><input id="set-opencode" type="password" autocomplete="off" /></label>
-          <label class="field"><span>OpenAI API key</span><input id="set-openai" type="password" autocomplete="off" /></label>
-          <label class="field"><span>Groq API key</span><input id="set-groq" type="password" autocomplete="off" /></label>
-          <label class="field"><span>GitHub token</span><input id="set-github" type="password" autocomplete="off" /></label>
-          <label class="field"><span>Ollama URL</span><input id="set-ollama" placeholder="http://127.0.0.1:11434" /></label>
-          <label class="field"><span>PinchTab URL</span><input id="set-pinchtab-url" placeholder="http://127.0.0.1:9867" /></label>
-          <label class="field"><span>PinchTab token</span><input id="set-pinchtab-token" type="password" autocomplete="off" /></label>
-          <label class="field"><span>Agent-Reach URL</span><input id="set-reach-url" /></label>
-          <label class="field"><span>Agent-Reach token</span><input id="set-reach-token" type="password" autocomplete="off" /></label>
-          <label class="field"><span>Workspace</span><input id="set-workspace" placeholder="project path" /></label>
+          <label class="field">
+            <span>Gemini API key</span>
+            <input id="set-gemini" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>OpenCode API key</span>
+            <input id="set-opencode" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>OpenAI API key</span>
+            <input id="set-openai" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Groq API key</span>
+            <input id="set-groq" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>GitHub token</span>
+            <input id="set-github" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Ollama URL</span>
+            <input id="set-ollama" placeholder="http://127.0.0.1:11434" />
+          </label>
+          <label class="field">
+            <span>PinchTab URL</span>
+            <input id="set-pinchtab-url" placeholder="http://127.0.0.1:9867" />
+          </label>
+          <label class="field">
+            <span>PinchTab token</span>
+            <input id="set-pinchtab-token" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Agent-Reach URL</span>
+            <input id="set-reach-url" />
+          </label>
+          <label class="field">
+            <span>Agent-Reach token</span>
+            <input id="set-reach-token" type="password" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Workspace</span>
+            <input id="set-workspace" placeholder="project path" />
+          </label>
         </div>
         <p id="settings-msg" class="hint"></p>
         <div class="row settings-actions">
