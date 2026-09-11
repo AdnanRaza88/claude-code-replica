@@ -71,6 +71,7 @@ HOST_SLUGS = (
     "holt", "shaw", "lea", "mead", "wold", "moor", "fen", "reed", "rill",
     "brook",
     "weir",
+    "keld",
 )
 
 for _slug in HOST_SLUGS:
