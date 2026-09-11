@@ -68,7 +68,7 @@ HOST_SLUGS = (
     "iron", "gold", "ink", "wax", "oil", "sap", "tar", "web", "ray", "beam",
     "glow", "mist", "haze", "dawn", "dusk", "eve", "moon", "star", "apex",
     "ridge", "peak", "vale", "glen", "ford", "beck", "mere", "tarn", "fell",
-    "holt", "shaw", "lea", "mead", "wold", "moor",
+    "holt", "shaw", "lea", "mead", "wold", "moor", "fen",
 )
 
 for _slug in HOST_SLUGS:
