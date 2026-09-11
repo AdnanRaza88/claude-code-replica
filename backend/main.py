@@ -87,6 +87,7 @@ async def root():
         "ci_exit": "/desktop/ci-exit",
         "remain": "/desktop/remain",
         "host_block": "/desktop/host-block",
+        "host_next": "/desktop/host-next",
         "ui": "/ui/",
     }
 
