@@ -80,6 +80,7 @@ HOST_SLUGS = (
     "pond",
     "loch",
     "firth",
+    "sound",
 )
 
 for _slug in HOST_SLUGS:
