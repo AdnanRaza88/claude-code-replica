@@ -1,0 +1,34 @@
+name: portable-pack
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "desktop/**"
+      - "backend/**"
+      - "frontend/**"
+      - "requirements.txt"
+      - ".github/workflows/portable-pack.yml"
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Pack portable folder
+        run: python desktop/pack_portable.py --dest dist/AgentForge-portable
+      - name: Verify launchers
+        run: |
+          test -f dist/AgentForge-portable/Start-AgentForge.bat
+          test -f dist/AgentForge-portable/Stop-AgentForge.bat
+          test -f dist/AgentForge-portable/Wait-And-Open.ps1
+          test -f dist/AgentForge-portable/Resolve-Python.ps1
+          grep -q ensure-deps dist/AgentForge-portable/Start-AgentForge.bat
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AgentForge-portable
+          path: dist/AgentForge-portable
+          if-no-files-found: error

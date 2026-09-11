@@ -1,0 +1,51 @@
+name: windows-setup
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "desktop/**"
+      - "backend/**"
+      - "frontend/**"
+      - "requirements.txt"
+      - ".github/workflows/windows-setup.yml"
+
+jobs:
+  nsis:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Read version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = (Get-Content desktop/VERSION -Raw).Trim()
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Install deps
+        run: python -m pip install -r requirements.txt
+      - name: Pack portable folder
+        run: python desktop/pack_portable.py --dest dist/AgentForge-portable
+      - name: Install NSIS
+        run: choco install nsis -y
+      - name: Build Setup.exe
+        shell: pwsh
+        run: |
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          & $makensis /DPORTABLE_DIR=dist\AgentForge-portable desktop\windows\agentforge.nsi
+      - name: Upload Setup.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentForge-Setup-${{ steps.ver.outputs.version }}
+          path: dist/AgentForge-Setup-*.exe
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload portable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: AgentForge-portable-${{ steps.ver.outputs.version }}
+          path: dist/AgentForge-portable
+          if-no-files-found: warn
+          retention-days: 14
