@@ -18,7 +18,7 @@ Until the single files land on `main`, a clone can still:
 python desktop/parts/join_large_files.py
 ```
 
-That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy them up one folder if you need the historical paths.
+Checksums for every slice live in `desktop/parts/PARTS_SHA256.txt`. After join, compare those hashes before copying the rebuilt files to `desktop/`.
 
 5. Open `/ui/`
 6. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present
