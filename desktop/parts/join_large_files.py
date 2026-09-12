@@ -28,6 +28,8 @@ def join(stem: str) -> Path:
     chunks: list[str] = []
     for part in parts:
         data = part.read_bytes()
+        if data.strip() in {b"PLACEHOLDER_USE_FILE", b"PLACEHOLDER"}:
+            raise SystemExit(f"placeholder slice {part.name} — refuse join")
         digest = hashlib.sha256(data).hexdigest()
         spec = expect.get(part.name)
         if spec and (digest != spec[0] or len(data) != spec[1]):
