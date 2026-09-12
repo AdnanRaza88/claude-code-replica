@@ -18,7 +18,7 @@ Until the single files land on `main`, a clone can still:
 python desktop/parts/join_large_files.py
 ```
 
-Checksums for every slice live in `desktop/parts/PARTS_SHA256.txt`. After join, compare those hashes before copying the rebuilt files to `desktop/`.
+Slices are 8 KB each (45 parts: launch_engine 25 + pack_portable 20) so the GitHub connector can accept them in small batches. Checksums live in `desktop/parts/PARTS_SHA256.txt`. After join, compare those hashes before copying the rebuilt files to `desktop/`.
 
 5. Open `/ui/`
 6. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present

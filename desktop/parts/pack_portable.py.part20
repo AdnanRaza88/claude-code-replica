@@ -1,0 +1,9 @@
+" / "AgentForge-portable")
+    args = parser.parse_args()
+    out = pack(args.dest)
+    print(out)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

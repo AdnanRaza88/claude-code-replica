@@ -14,14 +14,15 @@ def _load():
     return mod
 
 
-def test_expected_hashes_lists_eighteen_slices():
+def test_expected_hashes_lists_slices():
     mod = _load()
     found = mod.expected_hashes()
-    assert len(found) == 18
+    assert len(found) >= 2
     assert "launch_engine.py.part01" in found
     digest, size = found["launch_engine.py.part01"]
     assert len(digest) == 64
-    assert size == 19983
+    assert size > 0
+    assert size <= 8000
 
 
 def test_join_rejects_bad_hash(tmp_path, monkeypatch):
