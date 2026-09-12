@@ -1,0 +1,201 @@
+ndent=2), encoding="utf-8")
+    err = dest.parent / "last_error.txt" if dest else LAST_ERROR_FILE
+    if payload["ok"]:
+        if err.exists():
+            try:
+                err.unlink()
+            except OSError:
+                pass
+    else:
+        fails = [c for c in payload["checks"] if not c.get("ok")]
+        lines = ["AgentForge first-run failed"]
+        for check in fails:
+            lines.append(f"- {check.get('id')}: {check.get('detail')}")
+        if not fails:
+            lines.append("- unknown")
+        err.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def first_run(host: str, preferred: int) -> dict:
+    deps_rc = ensure_deps()
+    layout = pack_layout()
+    report = doctor(host, preferred)
+    checks = list(layout["checks"]) + list(report["checks"]) + [
+        {"id": "ensure-deps", "ok": deps_rc == 0, "detail": "deps-ok" if deps_rc == 0 else f"rc={deps_rc}"},
+    ]
+    ok = layout["ok"] and report["ok"] and deps_rc == 0
+    return {
+        "ok": ok,
+        "deps_rc": deps_rc,
+        "checks": checks,
+        "version": layout["version"],
+        "doctor": report,
+    }
+
+
+REPAIR_FILE = ROOT / ".agentforge" / "logs" / "repair.json"
+READY_FILE = ROOT / ".agentforge" / "logs" / "ready.json"
+WELCOME_FILE = ROOT / ".agentforge" / "logs" / "welcome.json"
+GUIDE_FILE = ROOT / ".agentforge" / "logs" / "guide.json"
+GUIDE_TEXT = ROOT / ".agentforge" / "logs" / "guide.txt"
+PREFLIGHT_FILE = ROOT / ".agentforge" / "logs" / "preflight.json"
+PREFLIGHT_TEXT = ROOT / ".agentforge" / "logs" / "preflight.txt"
+VERIFY_FILE = ROOT / ".agentforge" / "logs" / "verify_install.json"
+VERIFY_TEXT = ROOT / ".agentforge" / "logs" / "verify_install.txt"
+HANDOFF_FILE = ROOT / ".agentforge" / "logs" / "handoff.json"
+HANDOFF_TEXT = ROOT / ".agentforge" / "logs" / "handoff.txt"
+SIGNOFF_FILE = ROOT / ".agentforge" / "logs" / "signoff.json"
+SIGNOFF_TEXT = ROOT / ".agentforge" / "logs" / "signoff.txt"
+ACCEPT_FILE = ROOT / ".agentforge" / "logs" / "acceptance.json"
+ACCEPT_TEXT = ROOT / ".agentforge" / "logs" / "acceptance.txt"
+RELEASE_FILE = ROOT / ".agentforge" / "logs" / "release.json"
+RELEASE_TEXT = ROOT / ".agentforge" / "logs" / "release.txt"
+OPERATOR_FILE = ROOT / ".agentforge" / "logs" / "operator.json"
+OPERATOR_TEXT = ROOT / ".agentforge" / "logs" / "operator.txt"
+CLOSEOUT_FILE = ROOT / ".agentforge" / "logs" / "closeout.json"
+CLOSEOUT_TEXT = ROOT / ".agentforge" / "logs" / "closeout.txt"
+WINDOWS_STAMP = ROOT / ".agentforge" / "logs" / "windows_accepted.json"
+WELCOME_TEXT = ROOT / ".agentforge" / "logs" / "welcome.txt"
+BUNDLE_DIR = ROOT / ".agentforge" / "logs"
+BUNDLE_MANIFEST = ROOT / ".agentforge" / "logs" / "bundle.json"
+
+
+def nsi_version_matches() -> tuple[bool, str]:
+    nsi = ROOT / "desktop" / "windows" / "agentforge.nsi"
+    ver = read_version()
+    if not nsi.is_file():
+        return False, "missing nsi"
+    text = nsi.read_text(encoding="utf-8")
+    ok = f'!define VERSION "{ver}"' in text
+    return ok, ver
+
+
+def ready_check() -> dict:
+    layout = pack_layout()
+    nsi_ok, nsi_detail = nsi_version_matches()
+    workflow = ROOT / ".github" / "workflows" / "windows-setup.yml"
+    wf_text = workflow.read_text(encoding="utf-8") if workflow.is_file() else ""
+    wf_ok = workflow.is_file() and "--ready" in wf_text
+    checks = list(layout["checks"]) + [
+        {"id": "nsi-version", "ok": nsi_ok, "detail": nsi_detail},
+        {"id": "windows-setup-ready", "ok": wf_ok, "detail": str(workflow)},
+    ]
+    ok = layout["ok"] and nsi_ok and wf_ok
+    return {"ok": ok, "checks": checks, "version": layout["version"]}
+
+
+def _settings_first_run_done() -> bool | None:
+    path = ROOT / ".agentforge" / "settings.json"
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if "first_run_done" not in data:
+        return None
+    return bool(data.get("first_run_done"))
+
+
+def welcome_check(host: str, preferred: int) -> dict:
+    layout = pack_layout()
+    ready = ready_check()
+    report = doctor(host, preferred)
+    status = engine_status(host, preferred)
+    first_done = _settings_first_run_done()
+    last_err = LAST_ERROR_FILE.is_file()
+    if not layout["ok"]:
+        next_action = "first-run"
+        hint = "Pack files missing. Run FirstRun-AgentForge.bat."
+    elif not report["ok"]:
+        next_action = "repair"
+        hint = "Install not ready. Run Repair-AgentForge.bat then Doctor."
+    elif last_err:
+        next_action = "collect-logs"
+        hint = "Last error on disk. Run Collect-Logs-AgentForge.bat."
+    elif status.get("healthy"):
+        next_action = "open-ui"
+        hint = f"Engine is up. Open {status.get('ui')}."
+    elif first_done is False or first_done is None:
+        next_action = "start"
+        hint = "Double-click Start-AgentForge.bat, then save keys in /ui."
+    else:
+        next_action = "start"
+        hint = "Double-click Start-AgentForge.bat to open /ui."
+    checks = list(layout["checks"]) + [
+        {"id": "ready", "ok": bool(ready.get("ok")), "detail": ready.get("version")},
+        {"id": "doctor-install", "ok": bool(report.get("ok")), "detail": "install-ok" if report.get("ok") else "not-ready"},
+        {"id": "engine", "ok": bool(status.get("healthy")), "detail": status.get("ui")},
+        {"id": "settings-first-run", "ok": first_done is not False, "detail": "unset" if first_done is None else str(first_done)},
+        {"id": "last-error", "ok": not last_err, "detail": str(LAST_ERROR_FILE) if last_err else "none"},
+    ]
+    ok = bool(layout["ok"] and ready.get("ok") and report.get("ok"))
+    return {
+        "ok": ok,
+        "next": next_action,
+        "hint": hint,
+        "checks": checks,
+        "version": layout["version"],
+        "product": "AgentForge",
+        "ui": status.get("ui"),
+        "healthy": bool(status.get("healthy")),
+    }
+
+
+def write_welcome_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or WELCOME_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "ui": report.get("ui"),
+        "healthy": bool(report.get("healthy")),
+        "checks": report.get("checks", []),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "welcome.txt" if dest else WELCOME_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS)",
+        f"version {payload.get('version')}",
+        f"status {'ok' if payload['ok'] else 'not-ready'}",
+        f"next {payload.get('next')}",
+        payload.get("hint") or "",
+        f"ui {payload.get('ui') or '-'}",
+    ]
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def guide_check(host: str, preferred: int) -> dict:
+    welcome = welcome_check(host, preferred)
+    version = read_version()
+    silent = f"AgentForge-Setup-{version}.exe /S /D=%LOCALAPPDATA%\\AgentForge"
+    steps = [
+        "Install Python 3.11+ or set AGENTFORGE_PYTHON.",
+        "Run FirstRun-AgentForge.bat on a new machine.",
+        "Run Start-AgentForge.bat and wait for /ui.",
+        "Save provider keys in the first-run overlay.",
+        "If start fails: Welcome, then Repair, then Collect Logs.",
+        f"Silent installer: {silent}",
+    ]
+    return {
+        "ok": True,
+        "product": "AgentForge",
+        "version": version,
+        "next": welcome.get("next"),
+        "hint": welcome.get("hint"),
+        "ui": welcome.get("ui"),
+        "healthy": bool(welcome.get("healthy")),
+        "silent": silent,
+        "steps": steps,
+        "welcome_ok": bool(welcome.get("ok")),
+    }
+
+
+def write_guide_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or GUI
