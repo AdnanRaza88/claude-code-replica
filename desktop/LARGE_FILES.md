@@ -12,15 +12,15 @@ Until the single files land on `main`, a clone can still:
 1. Start the FastAPI engine: `python -m uvicorn backend.main:app --host 127.0.0.1 --port 8787`
 2. Or use the slim launcher on GitHub: `python desktop/launch_engine_min.py` (start / `--status` / `--stop` / `--doctor` / `--open-ui`)
 3. Build a slim portable folder: `python desktop/pack_portable_min.py`
-4. Rebuild the full scripts from parts:
+4. Rebuild the full scripts from parts (18 slices, ~20 KB each):
 
 ```
 python desktop/parts/join_large_files.py
 ```
 
-Part inventory is in `desktop/parts/PARTS_INDEX.txt`. `join_large_files.py` is on GitHub; the `.partNN` slices are still being uploaded in later hourly runs (payload limit).
-
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy them up one folder if you need the historical paths.
+
+Part payloads land on GitHub across hourly runs (connector size limit). See `desktop/parts/PARTS_INDEX.txt`.
 
 5. Open `/ui/`
 6. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present
