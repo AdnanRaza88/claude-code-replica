@@ -18,6 +18,8 @@ Until the single files land on `main`, a clone can still:
 python desktop/parts/join_large_files.py
 ```
 
+Part inventory is in `desktop/parts/PARTS_INDEX.txt`. `join_large_files.py` is on GitHub; the `.partNN` slices are still being uploaded in later hourly runs (payload limit).
+
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy them up one folder if you need the historical paths.
 
 5. Open `/ui/`

@@ -1,0 +1,11 @@
+# AgentForge large-file parts
+
+launch_engine.py.part01 45042
+launch_engine.py.part02 45000
+launch_engine.py.part03 45000
+launch_engine.py.part04 45000
+launch_engine.py.part05 18090
+pack_portable.py.part01 45000
+pack_portable.py.part02 45000
+pack_portable.py.part03 45000
+pack_portable.py.part04 17170
