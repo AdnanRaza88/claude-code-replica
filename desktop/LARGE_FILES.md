@@ -10,7 +10,8 @@ These two files exist locally and are required for a full Windows pack. The GitH
 Until they land on `main`, a clone can still:
 
 1. Start the FastAPI engine: `python -m uvicorn backend.main:app --host 127.0.0.1 --port 8787`
-2. Open `/ui/`
-3. Use `desktop/windows/Start-AgentForge.bat` only after `launch_engine.py` is present
+2. Or use the slim launcher on GitHub: `python desktop/launch_engine_min.py` (start / `--status` / `--stop` / `--doctor` / `--open-ui`)
+3. Open `/ui/`
+4. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present
 
-Next automation runs should keep trying `github___push_files` for these two paths alone.
+Next automation runs should keep trying `github___push_files` for the two full paths alone.
