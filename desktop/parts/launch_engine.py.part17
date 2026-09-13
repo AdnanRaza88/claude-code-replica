@@ -1,0 +1,171 @@
+report
+
+        report = host_rim_packet(
+            refresh=bool(args.host_rim_refresh),
+            clear=bool(args.host_rim_clear),
+            operator=args.host_rim_operator or None,
+            reason=args.host_rim_text or None,
+        )
+        path = write_host_rim_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-rim-report {path}", file=sys.stderr, flush=True)
+        print("host-rim-ok" if report.get("ok") else "host-rim-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_oak or args.host_oak_refresh or args.host_oak_clear:
+        from src.services.desktop_status import host_oak_packet, write_host_oak_report
+
+        report = host_oak_packet(
+            refresh=bool(args.host_oak_refresh),
+            clear=bool(args.host_oak_clear),
+            operator=args.host_oak_operator or None,
+            reason=args.host_oak_text or None,
+        )
+        path = write_host_oak_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-oak-report {path}", file=sys.stderr, flush=True)
+        print("host-oak-ok" if report.get("ok") else "host-oak-fail", flush=True)
+
+    if args.host_elm or args.host_elm_refresh or args.host_elm_clear:
+        from src.services.desktop_status import host_elm_packet, write_host_elm_report
+
+        report = host_elm_packet(
+            refresh=bool(args.host_elm_refresh),
+            clear=bool(args.host_elm_clear),
+            operator=args.host_elm_operator or None,
+            reason=args.host_elm_text or None,
+        )
+        path = write_host_elm_report(report)
+        print(f"host-elm-report {path}", file=sys.stderr, flush=True)
+        print("host-elm-ok" if report.get("ok") else "host-elm-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_ash or args.host_ash_refresh or args.host_ash_clear:
+        from src.services.desktop_status import host_ash_packet, write_host_ash_report
+
+        report = host_ash_packet(
+            refresh=bool(args.host_ash_refresh),
+            clear=bool(args.host_ash_clear),
+            operator=args.host_ash_operator or None,
+            reason=args.host_ash_text or None,
+        )
+        path = write_host_ash_report(report)
+        print(f"host-ash-report {path}", file=sys.stderr, flush=True)
+        print("host-ash-ok" if report.get("ok") else "host-ash-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_fir or args.host_fir_refresh or args.host_fir_clear:
+        from src.services.desktop_status import host_fir_packet, write_host_fir_report
+
+        report = host_fir_packet(
+            refresh=bool(args.host_fir_refresh),
+            clear=bool(args.host_fir_clear),
+            operator=args.host_fir_operator or None,
+            reason=args.host_fir_text or None,
+        )
+        path = write_host_fir_report(report)
+        print(f"host-fir-report {path}", file=sys.stderr, flush=True)
+        print("host-fir-ok" if report.get("ok") else "host-fir-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_yew or args.host_yew_refresh or args.host_yew_clear:
+        from src.services.desktop_status import host_yew_packet, write_host_yew_report
+
+        report = host_yew_packet(
+            refresh=bool(args.host_yew_refresh),
+            clear=bool(args.host_yew_clear),
+            operator=args.host_yew_operator or None,
+            reason=args.host_yew_text or None,
+        )
+        path = write_host_yew_report(report)
+        print(f"host-yew-report {path}", file=sys.stderr, flush=True)
+        print("host-yew-ok" if report.get("ok") else "host-yew-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_ivy or args.host_ivy_refresh or args.host_ivy_clear:
+        from src.services.desktop_status import host_ivy_packet, write_host_ivy_report
+
+        report = host_ivy_packet(
+            refresh=bool(args.host_ivy_refresh),
+            clear=bool(args.host_ivy_clear),
+            operator=args.host_ivy_operator or None,
+            reason=args.host_ivy_text or None,
+        )
+        path = write_host_ivy_report(report)
+        print(f"host-ivy-report {path}", file=sys.stderr, flush=True)
+        print("host-ivy-ok" if report.get("ok") else "host-ivy-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_bay or args.host_bay_refresh or args.host_bay_clear:
+        from src.services.desktop_status import host_bay_packet, write_host_bay_report
+
+        report = host_bay_packet(
+            refresh=bool(args.host_bay_refresh),
+            clear=bool(args.host_bay_clear),
+            operator=args.host_bay_operator or None,
+            reason=args.host_bay_text or None,
+        )
+        path = write_host_bay_report(report)
+        print(f"host-bay-report {path}", file=sys.stderr, flush=True)
+        print("host-bay-ok" if report.get("ok") else "host-bay-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_fig or args.host_fig_refresh or args.host_fig_clear:
+        from src.services.desktop_status import host_fig_packet, write_host_fig_report
+
+        report = host_fig_packet(
+            refresh=bool(args.host_fig_refresh),
+            clear=bool(args.host_fig_clear),
+            operator=args.host_fig_operator or None,
+            reason=args.host_fig_text or None,
+        )
+        path = write_host_fig_report(report)
+        print(f"host-fig-report {path}", file=sys.stderr, flush=True)
+        print("host-fig-ok" if report.get("ok") else "host-fig-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_tea or args.host_tea_refresh or args.host_tea_clear:
+        from src.services.desktop_status import host_tea_packet, write_host_tea_report
+
+        report = host_tea_packet(
+            refresh=bool(args.host_tea_refresh),
+            clear=bool(args.host_tea_clear),
+            operator=args.host_tea_operator or None,
+            reason=args.host_tea_text or None,
+        )
+        path = write_host_tea_report(report)
+        print(f"host-tea-report {path}", file=sys.stderr, flush=True)
+        print("host-tea-ok" if report.get("ok") else "host-tea-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_dew or args.host_dew_refresh or args.host_dew_clear:
+        from src.services.desktop_status import host_dew_packet, write_host_dew_report
+
+        report = host_dew_packet(
+            refresh=bool(args.host_dew_refresh),
+            clear=bool(args.host_dew_clear),
+            operator=args.host_dew_operator or None,
+            reason=args.host_dew_text or None,
+        )
+        path = write_host_dew_report(report)
+        print(f"host-dew-report {path}", file=sys.stderr, flush=True)
+        print("host-dew-ok" if report.get("ok") else "host-dew-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_fog or args.host_fog_refresh or args.host_fog_clear:
+        from src.services.desktop_status import host_fog_packet, write_host_fog_report
+
+        report = host_fog_packet(
+            refresh=bool(args.host_fog_refresh),
+            clear=bool(args.host_fog_clear),
+            operator=args.host_fog_operator or None,
+            reason=args.host_fog_text or None,
+        )
+        path = write_host_fog_report(report)
+        print(f"host-fog-report {path}", file=sys.stderr, flush=True)
+        print("host-fog-ok" if report.get("ok") else "host-fog-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_sun or args.host_sun_refresh or args.host_sun_clear:
+        from src.services.desktop_status import host_sun_packet, write_host_sun_report
+
+        report = host_sun_packet(
+            refresh=bool(args.host_sun_refresh),
+            clear=bool(args.host_sun_clear),
+            operator=args.host_sun_operator or None,
+            reason=args.host_sun_text or None,
+        )
+        path = write_host_sun_report(
