@@ -1,0 +1,173 @@
+et, write_host_seal_report
+
+        report = host_seal_packet(
+            refresh=bool(args.host_seal_refresh),
+            clear=bool(args.host_seal_clear),
+            operator=args.host_seal_operator or None,
+            reason=args.host_seal_text or None,
+        )
+        path = write_host_seal_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-seal-report {path}", file=sys.stderr, flush=True)
+        print("host-seal-ok" if report.get("ok") else "host-seal-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_sign or args.host_sign_refresh or args.host_sign_clear:
+        from src.services.desktop_status import host_sign_packet, write_host_sign_report
+
+        report = host_sign_packet(
+            refresh=bool(args.host_sign_refresh),
+            clear=bool(args.host_sign_clear),
+            operator=args.host_sign_operator or None,
+            reason=args.host_sign_text or None,
+        )
+        path = write_host_sign_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-sign-report {path}", file=sys.stderr, flush=True)
+        print("host-sign-ok" if report.get("ok") else "host-sign-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_ok or args.host_ok_refresh or args.host_ok_clear:
+        from src.services.desktop_status import host_ok_packet, write_host_ok_report
+
+        report = host_ok_packet(
+            refresh=bool(args.host_ok_refresh),
+            clear=bool(args.host_ok_clear),
+            operator=args.host_ok_operator or None,
+            reason=args.host_ok_text or None,
+        )
+        path = write_host_ok_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-ok-report {path}", file=sys.stderr, flush=True)
+        print("host-ok-ok" if report.get("ok") else "host-ok-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_fit or args.host_fit_refresh or args.host_fit_clear:
+        from src.services.desktop_status import host_fit_packet, write_host_fit_report
+
+        report = host_fit_packet(
+            refresh=bool(args.host_fit_refresh),
+            clear=bool(args.host_fit_clear),
+            operator=args.host_fit_operator or None,
+            reason=args.host_fit_text or None,
+        )
+        path = write_host_fit_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-fit-report {path}", file=sys.stderr, flush=True)
+        print("host-fit-ok" if report.get("ok") else "host-fit-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_cue or args.host_cue_refresh or args.host_cue_clear:
+        from src.services.desktop_status import host_cue_packet, write_host_cue_report
+
+        report = host_cue_packet(
+            refresh=bool(args.host_cue_refresh),
+            clear=bool(args.host_cue_clear),
+            operator=args.host_cue_operator or None,
+            reason=args.host_cue_text or None,
+        )
+        path = write_host_cue_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-cue-report {path}", file=sys.stderr, flush=True)
+        print("host-cue-ok" if report.get("ok") else "host-cue-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+    if args.host_tap or args.host_tap_refresh or args.host_tap_clear:
+        from src.services.desktop_status import host_tap_packet, write_host_tap_report
+
+        report = host_tap_packet(
+            refresh=bool(args.host_tap_refresh),
+            clear=bool(args.host_tap_clear),
+            operator=args.host_tap_operator or None,
+            reason=args.host_tap_text or None,
+        )
+        path = write_host_tap_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-tap-report {path}", file=sys.stderr, flush=True)
+        print("host-tap-ok" if report.get("ok") else "host-tap-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_aim or args.host_aim_refresh or args.host_aim_clear:
+        from src.services.desktop_status import host_aim_packet, write_host_aim_report
+
+        report = host_aim_packet(
+            refresh=bool(args.host_aim_refresh),
+            clear=bool(args.host_aim_clear),
+            operator=args.host_aim_operator or None,
+            reason=args.host_aim_text or None,
+        )
+        path = write_host_aim_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-aim-report {path}", file=sys.stderr, flush=True)
+        print("host-aim-ok" if report.get("ok") else "host-aim-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_fix or args.host_fix_refresh or args.host_fix_clear:
+        from src.services.desktop_status import host_fix_packet, write_host_fix_report
+
+        report = host_fix_packet(
+            refresh=bool(args.host_fix_refresh),
+            clear=bool(args.host_fix_clear),
+            operator=args.host_fix_operator or None,
+            reason=args.host_fix_text or None,
+        )
+        path = write_host_fix_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-fix-report {path}", file=sys.stderr, flush=True)
+        print("host-fix-ok" if report.get("ok") else "host-fix-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_set or args.host_set_refresh or args.host_set_clear:
+        from src.services.desktop_status import host_set_packet, write_host_set_report
+
+        report = host_set_packet(
+            refresh=bool(args.host_set_refresh),
+            clear=bool(args.host_set_clear),
+            operator=args.host_set_operator or None,
+            reason=args.host_set_text or None,
+        )
+        path = write_host_set_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-set-report {path}", file=sys.stderr, flush=True)
+        print("host-set-ok" if report.get("ok") else "host-set-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_map or args.host_map_refresh or args.host_map_clear:
+        from src.services.desktop_status import host_map_packet, write_host_map_report
+
+        report = host_map_packet(
+            refresh=bool(args.host_map_refresh),
+            clear=bool(args.host_map_clear),
+            operator=args.host_map_operator or None,
+            reason=args.host_map_text or None,
+        )
+        path = write_host_map_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-map-report {path}", file=sys.stderr, flush=True)
+        print("host-map-ok" if report.get("ok") else "host-map-fail", flush=True)
+        return 0
+
+    if args.host_row or args.host_row_refresh or args.host_row_clear:
+        from src.services.desktop_status import host_row_packet, write_host_row_report
+
+        report = host_row_packet(
+            refresh=bool(args.host_row_refresh),
+            clear=bool(args.host_row_clear),
+            operator=args.host_row_operator or None,
+            reason=args.host_row_text or None,
+        )
+        path = write_host_row_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-row-report {path}", file=sys.stderr, flush=True)
+        print("host-row-ok" if report.get("ok") else "host-row-fail", flush=True)
+        return 0
+
+    if args.host_key or args.host_key_refresh or args.host_key_clear:
+        from src.services.desktop_status import host_key_packet, write_host_key_report
+
+        report = host_key_packet(
+            refresh=bool(args.host_key_refresh),
+            clear=bool(args.host_key_clear),
+            operator=args.host_key_operator or None,
+            reason=args.host_key_text or None,
+        )
+        path = write_host_key_report(report)
+        print(json.dumps(

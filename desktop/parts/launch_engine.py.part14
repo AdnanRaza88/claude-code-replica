@@ -1,0 +1,159 @@
+)
+        print("host-stay-ok" if report.get("ok") else "host-stay-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_keep:
+        from src.services.desktop_status import host_keep_packet, write_host_keep_report
+
+        report = host_keep_packet()
+        path = write_host_keep_report(report)
+        print(report.get("keep") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-keep-report {path}", file=sys.stderr, flush=True)
+        print("host-keep-ok" if report.get("ok") else "host-keep-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_sync:
+        from src.services.desktop_status import host_sync_packet, write_host_sync_report
+
+        report = host_sync_packet()
+        path = write_host_sync_report(report)
+        print(report.get("sync") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-sync-report {path}", file=sys.stderr, flush=True)
+        print("host-sync-ok" if report.get("ok") else "host-sync-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_lock or args.host_lock_refresh or args.host_lock_clear:
+        from src.services.desktop_status import host_lock_packet, write_host_lock_report
+
+        report = host_lock_packet(
+            refresh=bool(args.host_lock_refresh),
+            clear=bool(args.host_lock_clear),
+        )
+        path = write_host_lock_report(report)
+        print(report.get("lock") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"locked {report.get('locked')}", flush=True)
+        print(f"from_disk {report.get('from_disk')}", flush=True)
+        print(f"cleared {report.get('cleared')}", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-lock-report {path}", file=sys.stderr, flush=True)
+        print("host-lock-ok" if report.get("ok") else "host-lock-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_echo or args.host_echo_refresh or args.host_echo_clear:
+        from src.services.desktop_status import host_echo_packet, write_host_echo_report
+
+        report = host_echo_packet(
+            refresh=bool(args.host_echo_refresh),
+            clear=bool(args.host_echo_clear),
+        )
+        path = write_host_echo_report(report)
+        print(report.get("command") or "", flush=True)
+        print(f"echoed {report.get('echoed')}", flush=True)
+        print(f"from_disk {report.get('from_disk')}", flush=True)
+        print(f"cleared {report.get('cleared')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-echo-report {path}", file=sys.stderr, flush=True)
+        print("host-echo-ok" if report.get("ok") else "host-echo-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_mark or args.host_mark_refresh or args.host_mark_clear:
+        from src.services.desktop_status import host_mark_packet, write_host_mark_report
+
+        report = host_mark_packet(
+            refresh=bool(args.host_mark_refresh),
+            clear=bool(args.host_mark_clear),
+        )
+        path = write_host_mark_report(report)
+        print(report.get("command") or "", flush=True)
+        print(f"mark {report.get('mark')}", flush=True)
+        print(f"marked {report.get('marked')}", flush=True)
+        print(f"from_disk {report.get('from_disk')}", flush=True)
+        print(f"cleared {report.get('cleared')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-mark-report {path}", file=sys.stderr, flush=True)
+        print("host-mark-ok" if report.get("ok") else "host-mark-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_stamp or args.host_stamp_refresh or args.host_stamp_clear:
+        from src.services.desktop_status import host_stamp_packet, write_host_stamp_report
+
+        report = host_stamp_packet(
+            refresh=bool(args.host_stamp_refresh),
+            clear=bool(args.host_stamp_clear),
+            note=args.host_stamp_note or None,
+        )
+        path = write_host_stamp_report(report)
+        print(report.get("command") or "", flush=True)
+        print(f"stamp {report.get('stamp')}", flush=True)
+        print(f"note {report.get('note')}", flush=True)
+        print(f"stamped {report.get('stamped')}", flush=True)
+        print(f"from_disk {report.get('from_disk')}", flush=True)
+        print(f"cleared {report.get('cleared')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-stamp-report {path}", file=sys.stderr, flush=True)
+        print("host-stamp-ok" if report.get("ok") else "host-stamp-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_ack or args.host_ack_refresh or args.host_ack_clear:
+        from src.services.desktop_status import host_ack_packet, write_host_ack_report
+
+        report = host_ack_packet(
+            refresh=bool(args.host_ack_refresh),
+            clear=bool(args.host_ack_clear),
+            operator=args.host_ack_operator or None,
+        )
+        path = write_host_ack_report(report)
+        print(report.get("command") or "", flush=True)
+        print(f"ack {report.get('ack')}", flush=True)
+        print(f"operator {report.get('operator')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-ack-report {path}", file=sys.stderr, flush=True)
+        print("host-ack-ok" if report.get("ok") else "host-ack-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_note or args.host_note_refresh or args.host_note_clear:
+        from src.services.desktop_status import host_note_packet, write_host_note_report
+
+        report = host_note_packet(
+            refresh=bool(args.host_note_refresh),
+            clear=bool(args.host_note_clear),
+            operator=args.host_note_operator or None,
+            note=args.host_note_text or None,
+        )
+        path = write_host_note_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-note-report {path}", file=sys.stderr, flush=True)
+        print("host-note-ok" if report.get("ok") else "host-note-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_flag or args.host_flag_refresh or args.host_flag_clear:
+        from src.services.desktop_status import host_flag_packet, write_host_flag_report
+
+        report = host_flag_packet(
+            refresh=bool(args.host_flag_refresh),
+            clear=bool(args.host_flag_clear),
+            operator=args.host_flag_operator or None,
+            flag=args.host_flag_text or None,
+        )
+        path = write_host_flag_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-flag-report {path}", file=sys.stderr, flush=True)
+        print("host-flag-ok" if report.get("ok") else "host-flag-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_seal or args.host_seal_refresh or args.host_seal_clear:
+        from src.services.desktop_status import host_seal_pack
