@@ -1,0 +1,161 @@
+ed')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"hint {report.get('hint')}", flush=True)
+        print("host-copy-ok" if report.get("ok") else "host-copy-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_brief:
+        from src.services.desktop_status import host_brief_packet, write_host_brief_report
+
+        report = host_brief_packet()
+        path = write_host_brief_report(report)
+        print(f"host-brief-report {path}", flush=True)
+        print(f"brief {report.get('brief')}", flush=True)
+        print(f"why {report.get('why')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"blocked {report.get('blocked')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"hint {report.get('hint')}", flush=True)
+        for step in report.get("steps") or []:
+            print(f"step {step}", flush=True)
+        print("host-brief-ok" if report.get("ok") else "host-brief-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_line:
+        from src.services.desktop_status import host_line_packet, write_host_line_report
+
+        report = host_line_packet()
+        path = write_host_line_report(report)
+        print(report.get("line") or report.get("command") or "", flush=True)
+        print(f"host-line-report {path}", file=sys.stderr, flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_now:
+        from src.services.desktop_status import host_now_packet, write_host_now_report
+
+        report = host_now_packet()
+        path = write_host_now_report(report)
+        print(report.get("now") or "", flush=True)
+        print(f"why {report.get('why')}", flush=True)
+        print(f"blocked {report.get('blocked')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-now-report {path}", file=sys.stderr, flush=True)
+        print("host-now-ok" if report.get("ok") else "host-now-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_pin:
+        from src.services.desktop_status import host_pin_packet, write_host_pin_report
+
+        report = host_pin_packet()
+        path = write_host_pin_report(report)
+        print(report.get("pin") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"why {report.get('why')}", flush=True)
+        print(f"blocked {report.get('blocked')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-pin-report {path}", file=sys.stderr, flush=True)
+        print("host-pin-ok" if report.get("ok") else "host-pin-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_go:
+        from src.services.desktop_status import host_go_packet, write_host_go_report
+
+        report = host_go_packet()
+        path = write_host_go_report(report)
+        print(report.get("go") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"why {report.get('why')}", flush=True)
+        print(f"blocked {report.get('blocked')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-go-report {path}", file=sys.stderr, flush=True)
+        print("host-go-ok" if report.get("ok") else "host-go-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_run:
+        from src.services.desktop_status import host_run_packet, write_host_run_report
+
+        report = host_run_packet()
+        path = write_host_run_report(report)
+        print(report.get("run") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-run-report {path}", file=sys.stderr, flush=True)
+        print("host-run-ok" if report.get("ok") else "host-run-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_watch:
+        from src.services.desktop_status import host_watch_packet, write_host_watch_report
+
+        report = host_watch_packet()
+        path = write_host_watch_report(report)
+        print(report.get("watch") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(report.get("watch_command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-watch-report {path}", file=sys.stderr, flush=True)
+        print("host-watch-ok" if report.get("ok") else "host-watch-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_pull:
+        from src.services.desktop_status import host_pull_packet, write_host_pull_report
+
+        report = host_pull_packet()
+        path = write_host_pull_report(report)
+        print(report.get("pull") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-pull-report {path}", file=sys.stderr, flush=True)
+        print("host-pull-ok" if report.get("ok") else "host-pull-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_hold:
+        from src.services.desktop_status import host_hold_packet, write_host_hold_report
+
+        report = host_hold_packet()
+        path = write_host_hold_report(report)
+        print(report.get("hold") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-hold-report {path}", file=sys.stderr, flush=True)
+        print("host-hold-ok" if report.get("ok") else "host-hold-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_wait:
+        from src.services.desktop_status import host_wait_packet, write_host_wait_report
+
+        report = host_wait_packet()
+        path = write_host_wait_report(report)
+        print(report.get("wait") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-wait-report {path}", file=sys.stderr, flush=True)
+        print("host-wait-ok" if report.get("ok") else "host-wait-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_stay:
+        from src.services.desktop_status import host_stay_packet, write_host_stay_report
+
+        report = host_stay_packet()
+        path = write_host_stay_report(report)
+        print(report.get("stay") or "", flush=True)
+        print(report.get("command") or "", flush=True)
+        print(f"repo {report.get('repo')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"host-stay-report {path}", file=sys.stderr, flush=True
