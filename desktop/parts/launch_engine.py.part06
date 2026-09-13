@@ -20,3 +20,193 @@
         lines.append(f"{i}. {step}")
     text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
+
+
+def write_acceptance_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or ACCEPT_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "exit_met": bool(report.get("exit_met")),
+        "accepted": bool(report.get("accepted")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "silent": report.get("silent"),
+        "ui": report.get("ui"),
+        "healthy": report.get("healthy"),
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "criteria": report.get("criteria", []),
+        "steps": report.get("steps", []),
+        "stamp": report.get("stamp", {}),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "acceptance.txt" if dest else ACCEPT_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows acceptance",
+        f"version {payload.get('version')}",
+        f"pack {'ok' if payload['ok'] else 'not-ready'}",
+        f"accepted {payload['accepted']}",
+        f"exit_met {payload['exit_met']}",
+        f"next {payload.get('next')}",
+        f"silent {payload.get('silent')}",
+        f"ui {payload.get('ui') or '-'}",
+    ]
+    for check in payload.get("criteria") or []:
+        mark = "ok" if check.get("ok") else "open"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    for i, step in enumerate(payload.get("steps") or [], start=1):
+        lines.append(f"{i}. {step}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def open_ui(host: str, preferred: int) -> dict:
+    status = engine_status(host, preferred)
+    return {
+        "ok": bool(status.get("healthy")),
+        "ui": status.get("ui"),
+        "healthy": bool(status.get("healthy")),
+        "version": read_version(),
+        "product": "AgentForge",
+    }
+
+
+def write_ready_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or READY_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "checks": report.get("checks", []),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return path
+
+
+def write_repair_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or REPAIR_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "stopped": report.get("stopped"),
+        "deps_rc": report.get("deps_rc"),
+        "checks": report.get("checks", []),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    err = dest.parent / "last_error.txt" if dest else LAST_ERROR_FILE
+    if payload["ok"]:
+        if err.exists():
+            try:
+                err.unlink()
+            except OSError:
+                pass
+    else:
+        fails = [c for c in payload["checks"] if not c.get("ok")]
+        lines = ["AgentForge repair failed"]
+        for check in fails:
+            lines.append(f"- {check.get('id')}: {check.get('detail')}")
+        if not fails:
+            lines.append("- unknown")
+        err.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def repair(host: str, preferred: int) -> dict:
+    stopped = stop_engine(host, preferred)
+    release_lock(force=True)
+    clear_child()
+    deps_rc = ensure_deps()
+    layout = pack_layout()
+    report = doctor(host, preferred)
+    checks = [
+        {"id": "stop", "ok": stopped == 0, "detail": "stopped" if stopped == 0 else f"rc={stopped}"},
+        {"id": "lock-cleared", "ok": lock_stale(LOCK_FILE), "detail": str(LOCK_FILE)},
+        {"id": "ensure-deps", "ok": deps_rc == 0, "detail": "deps-ok" if deps_rc == 0 else f"rc={deps_rc}"},
+    ]
+    checks.extend(layout["checks"])
+    checks.extend(report["checks"])
+    ok = stopped == 0 and layout["ok"] and report["ok"] and deps_rc == 0
+    return {
+        "ok": ok,
+        "stopped": stopped,
+        "deps_rc": deps_rc,
+        "checks": checks,
+        "version": layout["version"],
+        "doctor": report,
+    }
+
+
+def _live_cycle(host: str, preferred: int) -> tuple[bool, str]:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+    env["AGENTFORGE_HOST"] = host
+    env["AGENTFORGE_PORT"] = str(preferred)
+    cmd = [sys.executable, str(ROOT / "desktop" / "launch_engine.py"), "--host", host, "--port", str(preferred)]
+    proc = subprocess.Popen(cmd, cwd=str(ROOT), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        if wait_healthy(host, preferred, timeout=25.0):
+            stop_engine(host, preferred)
+            return True, _ui_url(host, preferred)
+        proc.terminate()
+        stop_engine(host, preferred)
+        return False, "health timeout"
+    except OSError as exc:
+        stop_engine(host, preferred)
+        return False, str(exc)
+
+
+def collect_bundle(host: str, preferred: int, dest: Path | None = None) -> dict:
+    logs = BUNDLE_DIR
+    logs.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    zip_path = dest or (logs / f"support-{stamp}.zip")
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    report = doctor(host, preferred)
+    layout = pack_layout()
+    status = engine_status(host, preferred)
+    files: list[str] = []
+    candidates = [
+        ROOT / "desktop" / "VERSION",
+        LAST_ERROR_FILE,
+        logs / "smoke.json",
+        logs / "first_run.json",
+        logs / "repair.json",
+        logs / "ready.json",
+        logs / "welcome.json",
+        logs / "welcome.txt",
+        LOG_FILE,
+        PORT_FILE,
+        LOCK_FILE,
+        CHILD_FILE,
+    ]
+    doctor_snap = logs / "doctor.json"
+    doctor_snap.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    candidates.append(doctor_snap)
+    import zipfile
+
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in candidates:
+            if path.is_file():
+                arc = path.name if path.parent != logs else f"logs/{path.name}"
+                if path == ROOT / "desktop" / "VERSION":
+                    arc = "VERSION"
+                zf.write(path, arcname=arc)
+                files.append(arc)
+        zf.writestr(
+            "manifest.json",
+            json.dumps(
+                {
+                    "product": "AgentForge",
+                    "version": read_version(),
+                    "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                    "healthy": bool(status.get("healthy")),
+                    "ui": status.get("ui"),
+                    "files": files,
+                    "layout_ok": 
