@@ -20,7 +20,7 @@ python desktop/parts/join_large_files.py
 
 Slices are 8 KB each (45 parts: launch_engine 25 + pack_portable 20) so the GitHub connector can accept them in small batches. Checksums live in `desktop/parts/PARTS_SHA256.txt`. After join, compare those hashes before copying the rebuilt files to `desktop/`.
 
-Remote `desktop/parts/` as of 2026-09-14 00:09 PKT: index + sha256 + join + launch_engine parts through part10 (part09 restored 8000 bytes SHA 64f8a9f7 / commit 132bc1ed; part10 commit b9970e06). Next runs push launch_engine.py.part11-25 and pack_portable 01-19. GitHub `app.py` SHA 57e524ef (full 655-line AgentForge Streamlit, no PLACEHOLDER).
+Remote `desktop/parts/` as of 2026-09-14 01:06 PKT: index + sha256 + join + launch_engine parts through part10 on GitHub; this run continues the part11-25 / pack 01-19 backlog. GitHub `app.py` SHA 57e524ef (full 655-line AgentForge Streamlit, no PLACEHOLDER). Phase 4 exit still needs a Windows host.
 
 5. Open `/ui/`
 6. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present
