@@ -1,0 +1,153 @@
+fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.ci_live:
+        from src.services.desktop_status import ci_live_packet, write_ci_live_report
+
+        report = ci_live_packet()
+        path = write_ci_live_report(report)
+        print(f"ci-live-report {path}", flush=True)
+        print(f"target {report.get('target_dir')}", flush=True)
+        print(f"has_setup {report.get('has_setup')}", flush=True)
+        print(f"has_portable {report.get('has_portable')}", flush=True)
+        print(f"action {report.get('action')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print("ci-live-ok" if report.get("ok") else "ci-live-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.ci_boot:
+        from src.services.desktop_status import ci_boot_packet, write_ci_boot_report
+
+        report = ci_boot_packet()
+        path = write_ci_boot_report(report)
+        print(f"ci-boot-report {path}", flush=True)
+        print(f"target {report.get('target_dir')}", flush=True)
+        print(f"has_setup {report.get('has_setup')}", flush=True)
+        print(f"has_portable {report.get('has_portable')}", flush=True)
+        print(f"health {report.get('health_url')}", flush=True)
+        print(f"ui {report.get('ui_url')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        for item in report.get("steps") or []:
+            print(f"step {item}", flush=True)
+        print("ci-boot-ok" if report.get("ok") else "ci-boot-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.ci_seal:
+        from src.services.desktop_status import ci_seal_packet, write_ci_seal_report
+
+        report = ci_seal_packet()
+        path = write_ci_seal_report(report)
+        print(f"ci-seal-report {path}", flush=True)
+        print(f"stamp {report.get('stamp')}", flush=True)
+        print(f"health {report.get('health_url')}", flush=True)
+        print(f"ui {report.get('ui_url')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        for item in report.get("steps") or []:
+            print(f"step {item}", flush=True)
+        print("ci-seal-ok" if report.get("ok") else "ci-seal-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.ci_exit:
+        from src.services.desktop_status import ci_exit_packet, write_ci_exit_report
+
+        report = ci_exit_packet()
+        path = write_ci_exit_report(report)
+        print(f"ci-exit-report {path}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        for item in report.get("steps") or []:
+            print(f"step {item}", flush=True)
+        print("ci-exit-ok" if report.get("ok") else "ci-exit-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.remain:
+        from src.services.desktop_status import remain_packet, write_remain_report
+
+        report = remain_packet()
+        path = write_remain_report(report)
+        print(f"remain-report {path}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        for item in report.get("commands") or []:
+            print(f"cmd {item}", flush=True)
+        print("remain-ok" if report.get("ok") else "remain-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_block:
+        from src.services.desktop_status import host_block_packet, write_host_block_report
+
+        report = host_block_packet()
+        path = write_host_block_report(report)
+        print(f"host-block-report {path}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"blocked {report.get('blocked')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(f"hint {report.get('hint')}", flush=True)
+        for item in report.get("blockers") or []:
+            print(f"block {item.get('id')} {item.get('reason')}", flush=True)
+        print("host-block-ok" if report.get("ok") else "host-block-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_next:
+        from src.services.desktop_status import host_next_packet, write_host_next_report
+
+        report = host_next_packet()
+        path = write_host_next_report(report)
+        print(f"host-next-report {path}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        print(f"command {report.get('command')}", flush=True)
+        print(f"why {report.get('why')}", flush=True)
+        print(f"blocker {report.get('blocker_id')}", flush=True)
+        print(f"blocked {report.get('blocked')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(f"hint {report.get('hint')}", flush=True)
+        for item in report.get("commands") or []:
+            print(f"cmd {item}", flush=True)
+        print("host-next-ok" if report.get("ok") else "host-next-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.host_copy:
+        from src.services.desktop_status import host_copy_packet, write_host_copy_report
+
+        report = host_copy_packet()
+        path = write_host_copy_report(report)
+        print(f"host-copy-report {path}", flush=True)
+        print(f"copy {report.get('copy')}", flush=True)
+        print(f"script {report.get('script')}", flush=True)
+        print(f"why {report.get('why')}", flush=True)
+        print(f"blocker {report.get('blocker_id')}", flush=True)
+        print(f"blocked {report.get('block
