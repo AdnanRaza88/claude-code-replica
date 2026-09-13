@@ -1,0 +1,183 @@
+layout.get("ok"),
+                    "doctor_ok": report.get("ok"),
+                },
+                indent=2,
+            ),
+        )
+    payload = {
+        "ok": zip_path.is_file(),
+        "path": str(zip_path),
+        "files": files,
+        "version": read_version(),
+        "product": "AgentForge",
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    BUNDLE_MANIFEST.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return payload
+
+
+def write_bundle_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or BUNDLE_MANIFEST
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    return path
+
+
+def doctor(host: str, preferred: int) -> dict:
+    missing = missing_deps()
+    status = engine_status(host, preferred)
+    checks = [
+        {"id": "python", "ok": sys.version_info >= (3, 11), "detail": sys.version.split()[0]},
+        {"id": "version", "ok": True, "detail": read_version()},
+        {"id": "requirements", "ok": (ROOT / "requirements.txt").is_file(), "detail": "requirements.txt"},
+        {"id": "frontend", "ok": (ROOT / "frontend" / "index.html").is_file(), "detail": "frontend/index.html"},
+        {"id": "backend", "ok": (ROOT / "backend" / "main.py").is_file(), "detail": "backend/main.py"},
+        {"id": "deps", "ok": not missing, "detail": ",".join(missing) or "fastapi,uvicorn,pydantic"},
+        {"id": "engine", "ok": bool(status["healthy"]), "detail": status["ui"]},
+        {"id": "lock", "ok": True, "detail": f"pid={status['pid'] or '-'} stale={status['lock_stale']}"},
+    ]
+    return {
+        "ok": all(c["ok"] for c in checks if c["id"] != "engine"),
+        "ready": all(c["ok"] for c in checks),
+        "checks": checks,
+        "status": status,
+    }
+
+
+def stop_engine(host: str, preferred: int) -> int:
+    stored = read_port_file()
+    port = stored or preferred
+    targets = [p for p in (child_pid(), lock_pid()) if p]
+    for pid in targets:
+        _signal_pid(pid, 15)
+    for _ in range(20):
+        if not wait_healthy(host, port, timeout=0.15) and lock_stale(LOCK_FILE):
+            break
+        time.sleep(0.05)
+    if wait_healthy(host, port, timeout=0.3):
+        for pid in targets:
+            _signal_pid(pid, 9)
+    if wait_healthy(host, port, timeout=0.4):
+        log_line(f"stop requested but still healthy {port}")
+        print(f"engine still healthy on {port}", file=sys.stderr)
+        return 1
+    try:
+        if PORT_FILE.exists():
+            PORT_FILE.unlink()
+    except OSError:
+        pass
+    release_lock(force=True)
+    clear_child()
+    log_line(f"stopped {port}")
+    print("AgentForge engine stopped", flush=True)
+    return 0
+
+
+REQUIRED_IMPORTS = ("fastapi", "uvicorn", "pydantic")
+
+
+def missing_deps() -> list[str]:
+    missing: list[str] = []
+    for name in REQUIRED_IMPORTS:
+        try:
+            __import__(name)
+        except ImportError:
+            missing.append(name)
+    return missing
+
+
+def ensure_deps() -> int:
+    missing = missing_deps()
+    if not missing:
+        return 0
+    req = ROOT / "requirements.txt"
+    log_line(f"ensure_deps missing={missing}")
+    cmd = [sys.executable, "-m", "pip", "install", "-r", str(req)] if req.is_file() else [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        *missing,
+    ]
+    proc = subprocess.run(cmd, cwd=str(ROOT))
+    if proc.returncode != 0:
+        print("AgentForge could not install Python deps. Run: python -m pip install -r requirements.txt", file=sys.stderr)
+        return 5
+    still = missing_deps()
+    if still:
+        print(f"AgentForge still missing: {', '.join(still)}", file=sys.stderr)
+        return 5
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="agentforge-engine")
+    parser.add_argument("--host", default=os.environ.get("AGENTFORGE_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("AGENTFORGE_PORT", "8787")))
+    parser.add_argument("--reload", action="store_true")
+    parser.add_argument("--status", action="store_true")
+    parser.add_argument("--stop", action="store_true")
+    parser.add_argument("--ensure-deps", action="store_true")
+    parser.add_argument("--doctor", action="store_true")
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--self-test-live", action="store_true")
+    parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--first-run", action="store_true")
+    parser.add_argument("--repair", action="store_true")
+    parser.add_argument("--bundle", action="store_true")
+    parser.add_argument("--ready", action="store_true")
+    parser.add_argument("--welcome", action="store_true")
+    parser.add_argument("--open-ui", action="store_true")
+    parser.add_argument("--guide", action="store_true")
+    parser.add_argument("--preflight", action="store_true")
+    parser.add_argument("--verify-install", action="store_true")
+    parser.add_argument("--handoff", action="store_true")
+    parser.add_argument("--signoff", action="store_true")
+    parser.add_argument("--acceptance", action="store_true")
+    parser.add_argument("--accept-windows", action="store_true")
+    parser.add_argument("--release", action="store_true")
+    parser.add_argument("--operator", action="store_true")
+    parser.add_argument("--closeout", action="store_true")
+    parser.add_argument("--gate", action="store_true")
+    parser.add_argument("--windows-smoke", action="store_true")
+    parser.add_argument("--onboard", action="store_true")
+    parser.add_argument("--windows-path", action="store_true")
+    parser.add_argument("--ci-trigger", action="store_true")
+    parser.add_argument("--ci-watch", action="store_true")
+    parser.add_argument("--ci-pull", action="store_true")
+    parser.add_argument("--ci-install", action="store_true")
+    parser.add_argument("--ci-verify", action="store_true")
+    parser.add_argument("--ci-go", action="store_true")
+    parser.add_argument("--windows-host", action="store_true")
+    parser.add_argument("--pack-check", action="store_true")
+    parser.add_argument("--ci-artifacts", action="store_true")
+    parser.add_argument("--ci-drop", action="store_true")
+    parser.add_argument("--ci-apply", action="store_true")
+    parser.add_argument("--ci-finish", action="store_true")
+    parser.add_argument("--ci-live", action="store_true")
+    parser.add_argument("--ci-boot", action="store_true")
+    parser.add_argument("--ci-seal", action="store_true")
+    parser.add_argument("--ci-exit", action="store_true")
+    parser.add_argument("--remain", action="store_true")
+    parser.add_argument("--host-block", action="store_true")
+    parser.add_argument("--host-next", action="store_true")
+    parser.add_argument("--host-copy", action="store_true")
+    parser.add_argument("--host-brief", action="store_true")
+    parser.add_argument("--host-line", action="store_true")
+    parser.add_argument("--host-now", action="store_true")
+    parser.add_argument("--host-pin", action="store_true")
+    parser.add_argument("--host-go", action="store_true")
+    parser.add_argument("--host-run", action="store_true")
+    parser.add_argument("--host-watch", action="store_true")
+    parser.add_argument("--host-pull", action="store_true")
+    parser.add_argument("--host-hold", action="store_true")
+    parser.add_argument("--host-wait", action="store_true")
+    parser.add_argument("--host-stay", action="store_true")
+    parser.add_argument("--host-keep", action="store_true")
+    parser.add_argument("--host-sync", action="store_true")
+    parser.add_argument("--host-lock", action="store_true")
+    parser.add_argument("--host-lock-refresh", action="store_true")
+    parser.add_argument("--host-lock-clear", action="store_true")
+    parser.add_argument("--host-echo", action="store_true")
+    parser.add_argument("--host-echo-refresh", action="store_true")
+    parser.add_argument("--host-echo-clear", 
