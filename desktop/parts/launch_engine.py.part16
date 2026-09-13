@@ -1,1 +1,160 @@
-PLACEHOLDER_USE_DISK
+report, indent=2), flush=True)
+        print(f"host-key-report {path}", file=sys.stderr, flush=True)
+        print("host-key-ok" if report.get("ok") else "host-key-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_pad or args.host_pad_refresh or args.host_pad_clear:
+        from src.services.desktop_status import host_pad_packet, write_host_pad_report
+
+        report = host_pad_packet(
+            refresh=bool(args.host_pad_refresh),
+            clear=bool(args.host_pad_clear),
+            operator=args.host_pad_operator or None,
+            reason=args.host_pad_text or None,
+        )
+        path = write_host_pad_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-pad-report {path}", file=sys.stderr, flush=True)
+        print("host-pad-ok" if report.get("ok") else "host-pad-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_tab or args.host_tab_refresh or args.host_tab_clear:
+        from src.services.desktop_status import host_tab_packet, write_host_tab_report
+
+        report = host_tab_packet(
+            refresh=bool(args.host_tab_refresh),
+            clear=bool(args.host_tab_clear),
+            operator=args.host_tab_operator or None,
+            reason=args.host_tab_text or None,
+        )
+        path = write_host_tab_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-tab-report {path}", file=sys.stderr, flush=True)
+        print("host-tab-ok" if report.get("ok") else "host-tab-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_bar or args.host_bar_refresh or args.host_bar_clear:
+        from src.services.desktop_status import host_bar_packet, write_host_bar_report
+
+        report = host_bar_packet(
+            refresh=bool(args.host_bar_refresh),
+            clear=bool(args.host_bar_clear),
+            operator=args.host_bar_operator or None,
+            reason=args.host_bar_text or None,
+        )
+        path = write_host_bar_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-bar-report {path}", file=sys.stderr, flush=True)
+        print("host-bar-ok" if report.get("ok") else "host-bar-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_dot or args.host_dot_refresh or args.host_dot_clear:
+        from src.services.desktop_status import host_dot_packet, write_host_dot_report
+
+        report = host_dot_packet(
+            refresh=bool(args.host_dot_refresh),
+            clear=bool(args.host_dot_clear),
+            operator=args.host_dot_operator or None,
+            reason=args.host_dot_text or None,
+        )
+        path = write_host_dot_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-dot-report {path}", file=sys.stderr, flush=True)
+        print("host-dot-ok" if report.get("ok") else "host-dot-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_cap or args.host_cap_refresh or args.host_cap_clear:
+        from src.services.desktop_status import host_cap_packet, write_host_cap_report
+
+        report = host_cap_packet(
+            refresh=bool(args.host_cap_refresh),
+            clear=bool(args.host_cap_clear),
+            operator=args.host_cap_operator or None,
+            reason=args.host_cap_text or None,
+        )
+        path = write_host_cap_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-cap-report {path}", file=sys.stderr, flush=True)
+        print("host-cap-ok" if report.get("ok") else "host-cap-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_hub or args.host_hub_refresh or args.host_hub_clear:
+        from src.services.desktop_status import host_hub_packet, write_host_hub_report
+
+        report = host_hub_packet(
+            refresh=bool(args.host_hub_refresh),
+            clear=bool(args.host_hub_clear),
+            operator=args.host_hub_operator or None,
+            reason=args.host_hub_text or None,
+        )
+        path = write_host_hub_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-hub-report {path}", file=sys.stderr, flush=True)
+        print("host-hub-ok" if report.get("ok") else "host-hub-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_lab or args.host_lab_refresh or args.host_lab_clear:
+        from src.services.desktop_status import host_lab_packet, write_host_lab_report
+
+        report = host_lab_packet(
+            refresh=bool(args.host_lab_refresh),
+            clear=bool(args.host_lab_clear),
+            operator=args.host_lab_operator or None,
+            reason=args.host_lab_text or None,
+        )
+        path = write_host_lab_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-lab-report {path}", file=sys.stderr, flush=True)
+        print("host-lab-ok" if report.get("ok") else "host-lab-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_net or args.host_net_refresh or args.host_net_clear:
+        from src.services.desktop_status import host_net_packet, write_host_net_report
+
+        report = host_net_packet(
+            refresh=bool(args.host_net_refresh),
+            clear=bool(args.host_net_clear),
+            operator=args.host_net_operator or None,
+            reason=args.host_net_text or None,
+        )
+        path = write_host_net_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-net-report {path}", file=sys.stderr, flush=True)
+        print("host-net-ok" if report.get("ok") else "host-net-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_bus or args.host_bus_refresh or args.host_bus_clear:
+        from src.services.desktop_status import host_bus_packet, write_host_bus_report
+
+        report = host_bus_packet(
+            refresh=bool(args.host_bus_refresh),
+            clear=bool(args.host_bus_clear),
+            operator=args.host_bus_operator or None,
+            reason=args.host_bus_text or None,
+        )
+        path = write_host_bus_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-bus-report {path}", file=sys.stderr, flush=True)
+        print("host-bus-ok" if report.get("ok") else "host-bus-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_way or args.host_way_refresh or args.host_way_clear:
+        from src.services.desktop_status import host_way_packet, write_host_way_report
+
+        report = host_way_packet(
+            refresh=bool(args.host_way_refresh),
+            clear=bool(args.host_way_clear),
+            operator=args.host_way_operator or None,
+            reason=args.host_way_text or None,
+        )
+        path = write_host_way_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-way-report {path}", file=sys.stderr, flush=True)
+        print("host-way-ok" if report.get("ok") else "host-way-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_arc or args.host_arc_refresh or args.host_arc_clear:
+        from src.services.desktop_status import host_arc_packet, write_host_arc_report
+
+        report = host_arc_packet(
+            refresh=bool(args.host_arc_refresh),
+            clear=bool(args.host_arc_clear),
+            operator=args.host_arc_operator or None,
+            reason=args.host_arc_text or None,
+        )
+        path = write_host_arc_report(report)
+        print(json.dumps(report, indent=2), flush=True)
+        print(f"host-arc-report {path}", file=sys.stderr, flush=True)
+        print("host-arc-ok" if report.get("ok") else "host-arc-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_rim or args.host_rim_refresh or args.host_rim_clear:
+        from src.services.desktop_status import host_rim_packet, write_host_rim_
