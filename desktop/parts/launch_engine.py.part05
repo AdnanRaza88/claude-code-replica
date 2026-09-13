@@ -46,3 +46,144 @@ def write_release_report(report: dict, dest: Path | None = None) -> Path:
         lines.append(f"{i}. {step}")
     text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
+
+
+def operator_packet(host: str, preferred: int) -> dict:
+    packet = release_packet(host, preferred)
+    steps = [
+        "On GitHub: Actions → windows-setup → Run workflow",
+        "Download AgentForge-Setup.exe or AgentForge-portable zip",
+        "Silent install option: Setup.exe /S /D=%LOCALAPPDATA%\\AgentForge",
+        "On Windows: FirstRun-AgentForge.bat (or Start-AgentForge.bat)",
+        "Wait until browser or Tauri shows /ui/",
+        "Accept-AgentForge.bat stamps windows_accepted.json",
+        "Signoff-AgentForge.bat — exit_met must be true",
+        "Collect-Logs-AgentForge.bat if anything failed",
+    ]
+    return {
+        "ok": bool(packet.get("ok")),
+        "exit_met": bool(packet.get("exit_met")),
+        "accepted": bool(packet.get("accepted")),
+        "product": "AgentForge",
+        "version": packet.get("version"),
+        "workflow": packet.get("workflow"),
+        "silent": packet.get("silent"),
+        "ui": packet.get("ui"),
+        "healthy": packet.get("healthy"),
+        "artifacts": packet.get("artifacts", []),
+        "next": "Windows operator: download CI artifact, open /ui, Accept, Signoff",
+        "hint": "One-page operator runbook. Phase 4 still needs a human on Windows.",
+        "criteria": packet.get("criteria", []),
+        "steps": steps,
+        "stamp": packet.get("stamp", {}),
+    }
+
+
+def write_operator_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or OPERATOR_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "exit_met": bool(report.get("exit_met")),
+        "accepted": bool(report.get("accepted")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "workflow": report.get("workflow"),
+        "silent": report.get("silent"),
+        "ui": report.get("ui"),
+        "healthy": report.get("healthy"),
+        "artifacts": report.get("artifacts", []),
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "criteria": report.get("criteria", []),
+        "steps": report.get("steps", []),
+        "stamp": report.get("stamp", {}),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "operator.txt" if dest else OPERATOR_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows operator runbook",
+        f"version {payload.get('version')}",
+        f"workflow {payload.get('workflow')}",
+        f"pack {'ok' if payload['ok'] else 'not-ready'}",
+        f"accepted {payload['accepted']}",
+        f"exit_met {payload['exit_met']}",
+        f"next {payload.get('next')}",
+        f"silent {payload.get('silent')}",
+        f"ui {payload.get('ui') or '-'}",
+    ]
+    for name in payload.get("artifacts") or []:
+        lines.append(f"artifact {name}")
+    for check in payload.get("criteria") or []:
+        mark = "ok" if check.get("ok") else "open"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    for i, step in enumerate(payload.get("steps") or [], start=1):
+        lines.append(f"{i}. {step}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def closeout_packet(host: str, preferred: int) -> dict:
+    packet = operator_packet(host, preferred)
+    platform = sys.platform
+    windows_host = platform.startswith("win")
+    stamp = packet.get("stamp") or windows_accepted()
+    remaining = []
+    if not windows_host:
+        remaining.append("this host is not Windows; Setup.exe / double-click path still open")
+    if not stamp.get("ok"):
+        remaining.append("windows_accepted.json missing — run Accept-AgentForge.bat after /ui")
+    if not packet.get("exit_met"):
+        remaining.append("signoff exit_met is false until pack + nsi + Windows stamp all pass")
+    remaining.append("trigger windows-setup.yml if Setup.exe or portable zip is missing")
+    return {
+        "ok": bool(packet.get("ok")),
+        "exit_met": bool(packet.get("exit_met")) and windows_host,
+        "accepted": bool(packet.get("accepted")),
+        "windows_host": windows_host,
+        "platform": platform,
+        "product": "AgentForge",
+        "version": packet.get("version"),
+        "workflow": packet.get("workflow"),
+        "silent": packet.get("silent"),
+        "ui": packet.get("ui"),
+        "healthy": packet.get("healthy"),
+        "artifacts": packet.get("artifacts", []),
+        "remaining": remaining,
+        "next": "Windows closeout: CI artifact → FirstRun → /ui → Accept → Signoff",
+        "hint": "Closeout records host OS. Linux CI cannot close Phase 4.",
+        "criteria": packet.get("criteria", []),
+        "steps": packet.get("steps", []),
+        "stamp": stamp,
+    }
+
+
+def write_closeout_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or CLOSEOUT_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "exit_met": bool(report.get("exit_met")),
+        "accepted": bool(report.get("accepted")),
+        "windows_host": bool(report.get("windows_host")),
+        "platform": report.get("platform"),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "workflow": report.get("workflow"),
+        "silent": report.get("silent"),
+        "ui": report.get("ui"),
+        "healthy": report.get("healthy"),
+        "artifacts": report.get("artifacts", []),
+        "remaining": report.get("remaining", []),
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "criteria": report.get("criteria", []),
+        "steps": report.get("steps", []),
+        "stamp": report.get("stamp", {}),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "closeout.txt" if dest else CLOSEOUT_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows phase-
