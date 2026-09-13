@@ -1,0 +1,19 @@
+silent": report.get("silent"),
+        "ui": report.get("ui"),
+        "healthy": report.get("healthy"),
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "steps": report.get("steps", []),
+        "checks": report.get("checks", []),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "handoff.txt" if dest else HANDOFF_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows handoff",
+        f"version {payload.get('version')}",
+        f"status {'ok' if payload['ok'] else 'not-ready'}",
+        f"next {payload.get('next')}",
+        f"silent {payload.get('silent')}",
+        f"ui {payload.get('ui') or '-'}",
+    ]
