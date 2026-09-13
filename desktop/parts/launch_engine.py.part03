@@ -13,3 +13,192 @@ DE_FILE
         "welcome_ok": bool(report.get("welcome_ok")),
         "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "guide.txt" if dest else GUIDE_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows guide",
+        f"version {payload.get('version')}",
+        f"next {payload.get('next')}",
+        payload.get("hint") or "",
+        f"silent {payload.get('silent')}",
+    ]
+    for i, step in enumerate(payload.get("steps") or [], start=1):
+        lines.append(f"{i}. {step}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def preflight_check(host: str, preferred: int) -> dict:
+    ready = ready_check()
+    welcome = welcome_check(host, preferred)
+    guide = guide_check(host, preferred)
+    report = doctor(host, preferred)
+    py_ok = True
+    py_detail = sys.version.split()[0]
+    try:
+        major, minor = sys.version_info[:2]
+        py_ok = (major, minor) >= (3, 11)
+    except Exception:
+        py_ok = False
+        py_detail = "unknown"
+    checks = [
+        {"id": "python", "ok": py_ok, "detail": py_detail},
+        {"id": "ready", "ok": bool(ready.get("ok")), "detail": ready.get("version")},
+        {"id": "doctor-install", "ok": bool(report.get("ok")), "detail": "install-ok" if report.get("ok") else "not-ready"},
+        {"id": "welcome", "ok": bool(welcome.get("ok")), "detail": welcome.get("next")},
+        {"id": "guide", "ok": bool(guide.get("ok")), "detail": guide.get("silent")},
+    ]
+    ok = py_ok and bool(ready.get("ok")) and bool(report.get("ok")) and bool(guide.get("ok"))
+    return {
+        "ok": ok,
+        "product": "AgentForge",
+        "version": read_version(),
+        "next": welcome.get("next"),
+        "hint": welcome.get("hint"),
+        "ui": welcome.get("ui"),
+        "healthy": bool(welcome.get("healthy")),
+        "silent": guide.get("silent"),
+        "checks": checks,
+    }
+
+
+def write_preflight_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or PREFLIGHT_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "ui": report.get("ui"),
+        "healthy": bool(report.get("healthy")),
+        "silent": report.get("silent"),
+        "checks": report.get("checks", []),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "preflight.txt" if dest else PREFLIGHT_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — preflight",
+        f"version {payload.get('version')}",
+        f"status {'ok' if payload['ok'] else 'not-ready'}",
+        f"next {payload.get('next')}",
+        payload.get("hint") or "",
+        f"silent {payload.get('silent')}",
+        f"ui {payload.get('ui') or '-'}",
+    ]
+    for check in payload.get("checks") or []:
+        mark = "ok" if check.get("ok") else "fail"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def _sha256_file(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_install(root: Path | None = None) -> dict:
+    base = root or ROOT
+    layout = pack_layout(base)
+    nsi_ok, nsi_detail = nsi_version_matches()
+    version = read_version()
+    hashed = {
+        "desktop/VERSION": _sha256_file(base / "desktop" / "VERSION"),
+        "desktop/launch_engine.py": _sha256_file(base / "desktop" / "launch_engine.py"),
+        "desktop/windows/agentforge.nsi": _sha256_file(base / "desktop" / "windows" / "agentforge.nsi"),
+        "requirements.txt": _sha256_file(base / "requirements.txt"),
+    }
+    hashes_ok = all(value for value in hashed.values())
+    checks = list(layout["checks"]) + [
+        {"id": "nsi-version", "ok": nsi_ok, "detail": nsi_detail},
+        {"id": "hashes", "ok": hashes_ok, "detail": "sha256"},
+    ]
+    ok = bool(layout["ok"] and nsi_ok and hashes_ok)
+    return {
+        "ok": ok,
+        "product": "AgentForge",
+        "version": version,
+        "checks": checks,
+        "hashes": hashed,
+        "silent": f"AgentForge-Setup-{version}.exe /S /D=%LOCALAPPDATA%\\AgentForge",
+    }
+
+
+def write_verify_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or VERIFY_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "silent": report.get("silent"),
+        "checks": report.get("checks", []),
+        "hashes": report.get("hashes", {}),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "verify_install.txt" if dest else VERIFY_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — verify install",
+        f"version {payload.get('version')}",
+        f"status {'ok' if payload['ok'] else 'not-ready'}",
+        f"silent {payload.get('silent')}",
+    ]
+    for check in payload.get("checks") or []:
+        mark = "ok" if check.get("ok") else "fail"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    for rel, digest in (payload.get("hashes") or {}).items():
+        lines.append(f"sha256 {rel} {digest or '-'}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def handoff_packet(host: str, preferred: int) -> dict:
+    version = read_version()
+    layout = pack_layout()
+    nsi_ok, nsi_detail = nsi_version_matches()
+    status = engine_status(host, preferred)
+    silent = f"AgentForge-Setup-{version}.exe /S /D=%LOCALAPPDATA%\\AgentForge"
+    steps = [
+        "On Windows, run .github workflow windows-setup.yml or compile with NSIS.",
+        "Download AgentForge-Setup.exe or the portable zip artifact.",
+        "Double-click FirstRun-AgentForge.bat (or Start-AgentForge.bat).",
+        "If start fails: VerifyInstall then Preflight then Collect-Logs.",
+        "Send .agentforge/logs/support-*.zip plus this handoff.txt.",
+        f"Silent install: {silent}",
+    ]
+    checks = list(layout["checks"]) + [
+        {"id": "nsi-version", "ok": nsi_ok, "detail": nsi_detail},
+        {"id": "engine-healthy", "ok": bool(status.get("healthy")), "detail": status.get("ui") or "down"},
+    ]
+    ok = bool(layout["ok"] and nsi_ok)
+    return {
+        "ok": ok,
+        "product": "AgentForge",
+        "version": version,
+        "silent": silent,
+        "ui": status.get("ui"),
+        "healthy": bool(status.get("healthy")),
+        "next": "Run windows-setup.yml then FirstRun-AgentForge.bat on a Windows box",
+        "hint": "Phase 4 exit is double-click → /ui. This packet is the operator checklist.",
+        "steps": steps,
+        "checks": checks,
+    }
+
+
+def write_handoff_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or HANDOFF_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        
