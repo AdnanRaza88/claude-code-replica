@@ -17,3 +17,187 @@ silent": report.get("silent"),
         f"silent {payload.get('silent')}",
         f"ui {payload.get('ui') or '-'}",
     ]
+    for i, step in enumerate(payload.get("steps") or [], start=1):
+        lines.append(f"{i}. {step}")
+    for check in payload.get("checks") or []:
+        mark = "ok" if check.get("ok") else "fail"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def windows_accepted() -> dict:
+    env = os.environ.get("AGENTFORGE_WINDOWS_ACCEPTED", "").strip().lower()
+    if env in {"1", "true", "yes"}:
+        return {"ok": True, "detail": "AGENTFORGE_WINDOWS_ACCEPTED set", "source": "env"}
+    if WINDOWS_STAMP.is_file():
+        try:
+            data = json.loads(WINDOWS_STAMP.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+        if data.get("accepted"):
+            return {
+                "ok": True,
+                "detail": data.get("note") or str(WINDOWS_STAMP),
+                "source": "stamp",
+                "written": data.get("written"),
+            }
+    return {
+        "ok": False,
+        "detail": "human must run Setup.exe or Start-AgentForge.bat on Windows then --accept-windows",
+        "source": "none",
+    }
+
+
+def write_windows_stamp(note: str = "") -> Path:
+    WINDOWS_STAMP.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "accepted": True,
+        "product": "AgentForge",
+        "version": read_version(),
+        "note": note or "operator confirmed /ui opened on Windows",
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    WINDOWS_STAMP.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return WINDOWS_STAMP
+
+
+def signoff_packet(host: str, preferred: int) -> dict:
+    packet = handoff_packet(host, preferred)
+    stamp = windows_accepted()
+    criteria = [
+        {
+            "id": "pack-layout",
+            "ok": bool(pack_layout()["ok"]),
+            "detail": "portable pack files present",
+        },
+        {
+            "id": "nsi-version",
+            "ok": nsi_version_matches()[0],
+            "detail": nsi_version_matches()[1],
+        },
+        {
+            "id": "windows-operator",
+            "ok": bool(stamp.get("ok")),
+            "detail": stamp.get("detail"),
+        },
+        {
+            "id": "ui-opened",
+            "ok": bool(packet.get("healthy")) or bool(stamp.get("ok")),
+            "detail": packet.get("ui") or stamp.get("detail") or "engine not healthy on this machine",
+        },
+    ]
+    exit_met = all(c["ok"] for c in criteria)
+    return {
+        "ok": bool(packet.get("ok")),
+        "exit_met": exit_met,
+        "product": "AgentForge",
+        "version": packet.get("version"),
+        "silent": packet.get("silent"),
+        "ui": packet.get("ui"),
+        "healthy": packet.get("healthy"),
+        "next": "On Windows: FirstRun-AgentForge.bat then Accept-AgentForge.bat after /ui opens",
+        "hint": "Phase 4 exit is not met until a Windows box opens /ui and --accept-windows writes the stamp.",
+        "criteria": criteria,
+        "steps": packet.get("steps", []),
+    }
+
+
+def write_signoff_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or SIGNOFF_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "exit_met": bool(report.get("exit_met")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "silent": report.get("silent"),
+        "ui": report.get("ui"),
+        "healthy": report.get("healthy"),
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "criteria": report.get("criteria", []),
+        "steps": report.get("steps", []),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "signoff.txt" if dest else SIGNOFF_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows phase-4 signoff",
+        f"version {payload.get('version')}",
+        f"pack {'ok' if payload['ok'] else 'not-ready'}",
+        f"exit_met {payload['exit_met']}",
+        f"next {payload.get('next')}",
+        f"silent {payload.get('silent')}",
+        f"ui {payload.get('ui') or '-'}",
+    ]
+    for check in payload.get("criteria") or []:
+        mark = "ok" if check.get("ok") else "open"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    for i, step in enumerate(payload.get("steps") or [], start=1):
+        lines.append(f"{i}. {step}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def acceptance_packet(host: str, preferred: int) -> dict:
+    packet = signoff_packet(host, preferred)
+    stamp = windows_accepted()
+    steps = [
+        "Download AgentForge-Setup.exe or the portable zip from windows-setup.yml",
+        "On Windows, run FirstRun-AgentForge.bat or Start-AgentForge.bat",
+        "Wait until the browser or Tauri window shows /ui/",
+        "Run Accept-AgentForge.bat (writes windows_accepted.json)",
+        "Re-run Signoff-AgentForge.bat and confirm exit_met true",
+        "If anything failed, run Collect-Logs-AgentForge.bat",
+    ]
+    return {
+        "ok": bool(packet.get("ok")),
+        "exit_met": bool(packet.get("exit_met")),
+        "accepted": bool(stamp.get("ok")),
+        "product": "AgentForge",
+        "version": packet.get("version"),
+        "silent": packet.get("silent"),
+        "ui": packet.get("ui"),
+        "healthy": packet.get("healthy"),
+        "next": packet.get("next"),
+        "hint": "Acceptance records the Windows double-click path. Stamp with --accept-windows after /ui opens.",
+        "criteria": packet.get("criteria", []),
+        "steps": steps,
+        "stamp": stamp,
+    }
+
+
+def release_packet(host: str, preferred: int) -> dict:
+    packet = acceptance_packet(host, preferred)
+    artifacts = [
+        "AgentForge-Setup-{version}.exe".format(version=read_version()),
+        "AgentForge-portable-{version}.zip".format(version=read_version()),
+        "AgentForge-acceptance-report",
+        "AgentForge-signoff-report",
+        "AgentForge-handoff-report",
+        "AgentForge-operator-report",
+    ]
+    steps = [
+        "On GitHub: Actions → windows-setup → Run workflow",
+        "Download Setup.exe or AgentForge-portable zip from the run artifacts",
+        "On Windows: FirstRun-AgentForge.bat (or Setup.exe /S)",
+        "Wait until /ui opens, then Accept-AgentForge.bat",
+        "Signoff-AgentForge.bat — exit_met must be true",
+        "Collect-Logs-AgentForge.bat if anything failed",
+    ]
+    return {
+        "ok": bool(packet.get("ok")),
+        "exit_met": bool(packet.get("exit_met")),
+        "accepted": bool(packet.get("accepted")),
+        "product": "AgentForge",
+        "version": packet.get("version"),
+        "workflow": "windows-setup.yml",
+        "silent": packet.get("silent"),
+        "ui": packet.get("ui"),
+        "healthy": packet.get("healthy"),
+        "artifacts": artifacts,
+        "next": "Trigger windows-setup.yml, install on Windows, Accept then Signoff",
+        "hint": "Release packet lists the CI artifacts a Windows operator must download.",
+        "criteria": packet.get("criteria", []),
+        "s
