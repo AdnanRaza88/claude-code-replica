@@ -1,0 +1,48 @@
+teps": steps,
+        "stamp": packet.get("stamp", {}),
+    }
+
+
+def write_release_report(report: dict, dest: Path | None = None) -> Path:
+    path = dest or RELEASE_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": bool(report.get("ok")),
+        "exit_met": bool(report.get("exit_met")),
+        "accepted": bool(report.get("accepted")),
+        "version": report.get("version"),
+        "product": "AgentForge",
+        "workflow": report.get("workflow"),
+        "silent": report.get("silent"),
+        "ui": report.get("ui"),
+        "healthy": report.get("healthy"),
+        "artifacts": report.get("artifacts", []),
+        "next": report.get("next"),
+        "hint": report.get("hint"),
+        "criteria": report.get("criteria", []),
+        "steps": report.get("steps", []),
+        "stamp": report.get("stamp", {}),
+        "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    text_path = path.parent / "release.txt" if dest else RELEASE_TEXT
+    lines = [
+        "AgentForge (AI Engineer OS) — Windows release packet",
+        f"version {payload.get('version')}",
+        f"workflow {payload.get('workflow')}",
+        f"pack {'ok' if payload['ok'] else 'not-ready'}",
+        f"accepted {payload['accepted']}",
+        f"exit_met {payload['exit_met']}",
+        f"next {payload.get('next')}",
+        f"silent {payload.get('silent')}",
+        f"ui {payload.get('ui') or '-'}",
+    ]
+    for name in payload.get("artifacts") or []:
+        lines.append(f"artifact {name}")
+    for check in payload.get("criteria") or []:
+        mark = "ok" if check.get("ok") else "open"
+        lines.append(f"{mark} {check.get('id')} {check.get('detail')}")
+    for i, step in enumerate(payload.get("steps") or [], start=1):
+        lines.append(f"{i}. {step}")
+    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
