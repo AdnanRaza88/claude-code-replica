@@ -13,16 +13,3 @@ DE_FILE
         "welcome_ok": bool(report.get("welcome_ok")),
         "written": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    text_path = path.parent / "guide.txt" if dest else GUIDE_TEXT
-    lines = [
-        "AgentForge (AI Engineer OS) — Windows guide",
-        f"version {payload.get('version')}",
-        f"next {payload.get('next')}",
-        payload.get("hint") or "",
-        f"silent {payload.get('silent')}",
-    ]
-    for i, step in enumerate(payload.get("steps") or [], start=1):
-        lines.append(f"{i}. {step}")
-    text_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return path
