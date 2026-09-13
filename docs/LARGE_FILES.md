@@ -15,4 +15,4 @@ python desktop/parts/join_large_files.py
 
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-Hourly automation 2026-09-13 06:10 PKT: GitHub `app.py` SHA 57e524ef still full (655 lines). Remote `desktop/parts` still only part01-02 + pack part20 + index/join. Next batches: launch_engine.py.part03–25 then pack_portable.py.part01–19.
+Hourly automation 2026-09-13 08:03 PKT: GitHub `app.py` SHA 57e524ef still full (655 lines / 26092 bytes). Remote parts were part01–03 + pack part20 + index/join. This run pushes launch_engine.py.part04–06. Next: part07–25 then pack_portable.py.part01–19.
