@@ -51,3 +51,53 @@ item.get('id')} {item.get('action')}", flush=True)
             print(f"remaining {item}", flush=True)
         print("closeout-ok" if report["ok"] else "closeout-fail", flush=True)
         return 0 if report["ok"] else 1
+
+    if args.operator:
+        report = operator_packet(args.host, args.port)
+        path = write_operator_report(report)
+        print(f"operator-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"accepted {report.get('accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        for i, step in enumerate(report.get("steps") or [], start=1):
+            print(f"{i}. {step}", flush=True)
+        print("operator-ok" if report["ok"] else "operator-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.release:
+        report = release_packet(args.host, args.port)
+        path = write_release_report(report)
+        print(f"release-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"accepted {report.get('accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"workflow {report.get('workflow')}", flush=True)
+        for name in report.get("artifacts") or []:
+            print(f"artifact {name}", flush=True)
+        for i, step in enumerate(report.get("steps") or [], start=1):
+            print(f"{i}. {step}", flush=True)
+        print("release-ok" if report["ok"] else "release-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.accept_windows:
+        stamp = write_windows_stamp()
+        print(f"windows-accepted {stamp}", flush=True)
+
+    if args.acceptance or args.accept_windows:
+        report = acceptance_packet(args.host, args.port)
+        path = write_acceptance_report(report)
+        write_signoff_report(signoff_packet(args.host, args.port))
+        print(f"acceptance-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"accepted {report.get('accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"silent {report.get('silent')}", flush=True)
+        for check in report.get("criteria") or []:
+            mark = "ok" if check.get("ok") else "open"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("acceptance-ok" if report["ok"] else "acceptance-fail", flush=True)
+        return 0 if report["ok"] else 1
