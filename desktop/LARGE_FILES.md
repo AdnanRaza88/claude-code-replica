@@ -1,26 +1,18 @@
-# Large desktop scripts not yet on GitHub as single files
+# Large files
 
-These two files exist locally and are required for a full Windows pack. The GitHub connector payload limit blocks a single-commit push of their full text.
+`desktop/launch_engine.py` and `desktop/pack_portable.py` exceed the GitHub contents API size that hourly automation can push in one blob.
 
-| Path | Local size | Role |
-|------|------------|------|
-| `desktop/launch_engine.py` | ~198 KB / 4241 lines | Engine start/stop/doctor + Phase-4 host packets |
-| `desktop/pack_portable.py` | ~152 KB / 3492 lines | Builds the portable zip layout |
+They are split under `desktop/parts/`:
 
-Until the single files land on `main`, a clone can still:
+- `launch_engine.py.part01` … `launch_engine.py.part25`
+- `pack_portable.py.part01` … `pack_portable.py.part20`
 
-1. Start the FastAPI engine: `python -m uvicorn backend.main:app --host 127.0.0.1 --port 8787`
-2. Or use the slim launcher on GitHub: `python desktop/launch_engine_min.py` (start / `--status` / `--stop` / `--doctor` / `--open-ui`)
-3. Build a slim portable folder: `python desktop/pack_portable_min.py`
-4. Rebuild the full scripts from parts:
+Join on a clone:
 
 ```
 python desktop/parts/join_large_files.py
 ```
 
-Slices are 8 KB each (45 parts: launch_engine 25 + pack_portable 20) so the GitHub connector can accept them in small batches. Checksums live in `desktop/parts/PARTS_SHA256.txt`. After join, compare those hashes before copying the rebuilt files to `desktop/`.
+Hourly 2026-09-14 06:08 PKT: parts 20-25 of launch_engine staged for GitHub. Full `app.py` on main remains SHA 57e524ef (655 lines, no PLACEHOLDER).
 
-Remote `desktop/parts/` as of 2026-09-14 01:06 PKT: index + sha256 + join + launch_engine parts through part10 on GitHub; this run continues the part11-25 / pack 01-19 backlog. GitHub `app.py` SHA 57e524ef (full 655-line AgentForge Streamlit, no PLACEHOLDER). Phase 4 exit still needs a Windows host.
-
-5. Open `/ui/`
-6. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present
+Do not replace `app.py` with PLACEHOLDER.

@@ -1,0 +1,17 @@
+port(report)
+        print(f"host-star-report {path}", file=sys.stderr, flush=True)
+        print("host-star-ok" if report.get("ok") else "host-star-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_apex or args.host_apex_refresh or args.host_apex_clear:
+        from src.services.desktop_status import host_apex_packet, write_host_apex_report
+        report = host_apex_packet(
+            refresh=bool(args.host_apex_refresh),
+            clear=bool(args.host_apex_clear),
+            operator=args.host_apex_operator or None,
+            reason=args.host_apex_text or None,
+        )
+        path = write_host_apex_report(report)
+        print(f"host-apex-report {path}", file=sys.stderr, flush=True)
+        print("host-apex-ok" if report.get("ok") else "host-apex-fail", flush=True)
+        return 0 if report.get("ok") else 1

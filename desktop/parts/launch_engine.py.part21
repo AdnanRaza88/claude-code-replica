@@ -1,0 +1,10 @@
+rom src.services.desktop_status import host_lea_packet, write_host_lea_report
+        report = host_lea_packet(
+            refresh=bool(args.host_lea_refresh),
+            clear=bool(args.host_lea_clear),
+            operator=args.host_lea_operator or None,
+            reason=args.host_lea_text or None,
+        )
+        path = write_host_lea_report(report)
+        print(f"host-lea-report {path}", file=sys.stderr, flush=True)
+        print("host-lea-ok" if report.get("ok") else "host-lea-fail", flush=True)
