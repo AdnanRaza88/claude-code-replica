@@ -8,3 +8,144 @@ rom src.services.desktop_status import host_lea_packet, write_host_lea_report
         path = write_host_lea_report(report)
         print(f"host-lea-report {path}", file=sys.stderr, flush=True)
         print("host-lea-ok" if report.get("ok") else "host-lea-fail", flush=True)
+    if args.host_mead or args.host_mead_refresh or args.host_mead_clear:
+        from src.services.desktop_status import host_mead_packet, write_host_mead_report
+        report = host_mead_packet(
+            refresh=bool(args.host_mead_refresh),
+            clear=bool(args.host_mead_clear),
+            operator=args.host_mead_operator or None,
+            reason=args.host_mead_text or None,
+        )
+        path = write_host_mead_report(report)
+        print(f"host-mead-report {path}", file=sys.stderr, flush=True)
+        print("host-mead-ok" if report.get("ok") else "host-mead-fail", flush=True)
+    if args.host_wold or args.host_wold_refresh or args.host_wold_clear:
+        from src.services.desktop_status import host_wold_packet, write_host_wold_report
+        report = host_wold_packet(
+            refresh=bool(args.host_wold_refresh),
+            clear=bool(args.host_wold_clear),
+            operator=args.host_wold_operator or None,
+            reason=args.host_wold_text or None,
+        )
+        path = write_host_wold_report(report)
+        print(f"host-wold-report {path}", file=sys.stderr, flush=True)
+        print("host-wold-ok" if report.get("ok") else "host-wold-fail", flush=True)
+    if args.host_moor or args.host_moor_refresh or args.host_moor_clear:
+        from src.services.desktop_status import host_moor_packet, write_host_moor_report
+        report = host_moor_packet(
+            refresh=bool(args.host_moor_refresh),
+            clear=bool(args.host_moor_clear),
+            operator=args.host_moor_operator or None,
+            reason=args.host_moor_text or None,
+        )
+        path = write_host_moor_report(report)
+        print(f"host-moor-report {path}", file=sys.stderr, flush=True)
+        print("host-moor-ok" if report.get("ok") else "host-moor-fail", flush=True)
+    if args.host_fen or args.host_fen_refresh or args.host_fen_clear:
+        from src.services.desktop_status import host_fen_packet, write_host_fen_report
+        report = host_fen_packet(
+            refresh=bool(args.host_fen_refresh),
+            clear=bool(args.host_fen_clear),
+            operator=args.host_fen_operator or None,
+            reason=args.host_fen_text or None,
+        )
+        path = write_host_fen_report(report)
+        print(f"host-fen-report {path}", file=sys.stderr, flush=True)
+        print("host-fen-ok" if report.get("ok") else "host-fen-fail", flush=True)
+    if args.host_reed or args.host_reed_refresh or args.host_reed_clear:
+        from src.services.desktop_status import host_reed_packet, write_host_reed_report
+        report = host_reed_packet(
+            refresh=bool(args.host_reed_refresh),
+            clear=bool(args.host_reed_clear),
+            operator=args.host_reed_operator or None,
+            reason=args.host_reed_text or None,
+        )
+        path = write_host_reed_report(report)
+        print(f"host-reed-report {path}", file=sys.stderr, flush=True)
+        print("host-reed-ok" if report.get("ok") else "host-reed-fail", flush=True)
+    if args.host_rill or args.host_rill_refresh or args.host_rill_clear:
+        from src.services.desktop_status import host_rill_packet, write_host_rill_report
+        report = host_rill_packet(
+            refresh=bool(args.host_rill_refresh),
+            clear=bool(args.host_rill_clear),
+            operator=args.host_rill_operator or None,
+            reason=args.host_rill_text or None,
+        )
+        path = write_host_rill_report(report)
+        print(f"host-rill-report {path}", file=sys.stderr, flush=True)
+        print("host-rill-ok" if report.get("ok") else "host-rill-fail", flush=True)
+    if args.host_brook or args.host_brook_refresh or args.host_brook_clear:
+        from src.services.desktop_status import host_brook_packet, write_host_brook_report
+        report = host_brook_packet(
+            refresh=bool(args.host_brook_refresh),
+            clear=bool(args.host_brook_clear),
+            operator=args.host_brook_operator or None,
+            reason=args.host_brook_text or None,
+        )
+        path = write_host_brook_report(report)
+        print(f"host-brook-report {path}", file=sys.stderr, flush=True)
+        print("host-brook-ok" if report.get("ok") else "host-brook-fail", flush=True)
+    if args.host_weir or args.host_weir_refresh or args.host_weir_clear:
+        from src.services.desktop_status import host_weir_packet, write_host_weir_report
+        report = host_weir_packet(
+            refresh=bool(args.host_weir_refresh),
+            clear=bool(args.host_weir_clear),
+            operator=args.host_weir_operator or None,
+            reason=args.host_weir_text or None,
+        )
+        path = write_host_weir_report(report)
+        print(f"host-weir-report {path}", file=sys.stderr, flush=True)
+        print("host-weir-ok" if report.get("ok") else "host-weir-fail", flush=True)
+    if args.host_keld or args.host_keld_refresh or args.host_keld_clear:
+        from src.services.desktop_status import host_keld_packet, write_host_keld_report
+        report = host_keld_packet(
+            refresh=bool(args.host_keld_refresh),
+            clear=bool(args.host_keld_clear),
+            operator=args.host_keld_operator or None,
+            reason=args.host_keld_text or None,
+        )
+        path = write_host_keld_report(report)
+        print(f"host-keld-report {path}", file=sys.stderr, flush=True)
+        print("host-keld-ok" if report.get("ok") else "host-keld-fail", flush=True)
+    if args.host_gill or args.host_gill_refresh or args.host_gill_clear:
+        from src.services.desktop_status import host_gill_packet, write_host_gill_report
+        report = host_gill_packet(
+            refresh=bool(args.host_gill_refresh),
+            clear=bool(args.host_gill_clear),
+            operator=args.host_gill_operator or None,
+            reason=args.host_gill_text or None,
+        )
+        path = write_host_gill_report(report)
+        print(f"host-gill-report {path}", file=sys.stderr, flush=True)
+        print("host-gill-ok" if report.get("ok") else "host-gill-fail", flush=True)
+        return
+
+    if args.host_linn or args.host_linn_refresh or args.host_linn_clear:
+        from src.services.desktop_status import host_linn_packet, write_host_linn_report
+        report = host_linn_packet(
+            refresh=bool(args.host_linn_refresh),
+            clear=bool(args.host_linn_clear),
+            operator=args.host_linn_operator or None,
+            reason=args.host_linn_text or None,
+        )
+        path = write_host_linn_report(report)
+        print(f"host-linn-report {path}", file=sys.stderr, flush=True)
+        print("host-linn-ok" if report.get("ok") else "host-linn-fail", flush=True)
+        return
+
+    if args.host_burn or args.host_burn_refresh or args.host_burn_clear:
+        from src.services.desktop_status import host_burn_packet, write_host_burn_report
+        report = host_burn_packet(
+            refresh=bool(args.host_burn_refresh),
+            clear=bool(args.host_burn_clear),
+            operator=args.host_burn_operator or None,
+            reason=args.host_burn_text or None,
+        )
+        path = write_host_burn_report(report)
+        print(f"host-burn-report {path}", file=sys.stderr, flush=True)
+        print("host-burn-ok" if report.get("ok") else "host-burn-fail", flush=True)
+        return
+
+    if args.host_foss or args.host_foss_refresh or args.host_foss_clear:
+        from src.services.desktop_status import host_foss_packet, write_host_foss_report
+     

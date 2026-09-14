@@ -15,3 +15,147 @@ port(report)
         print(f"host-apex-report {path}", file=sys.stderr, flush=True)
         print("host-apex-ok" if report.get("ok") else "host-apex-fail", flush=True)
         return 0 if report.get("ok") else 1
+
+    if args.host_ridge or args.host_ridge_refresh or args.host_ridge_clear:
+        from src.services.desktop_status import host_ridge_packet, write_host_ridge_report
+        report = host_ridge_packet(
+            refresh=bool(args.host_ridge_refresh),
+            clear=bool(args.host_ridge_clear),
+            operator=args.host_ridge_operator or None,
+            reason=args.host_ridge_text or None,
+        )
+        path = write_host_ridge_report(report)
+        print(f"host-ridge-report {path}", file=sys.stderr, flush=True)
+        print("host-ridge-ok" if report.get("ok") else "host-ridge-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_peak or args.host_peak_refresh or args.host_peak_clear:
+        from src.services.desktop_status import host_peak_packet, write_host_peak_report
+        report = host_peak_packet(
+            refresh=bool(args.host_peak_refresh),
+            clear=bool(args.host_peak_clear),
+            operator=args.host_peak_operator or None,
+            reason=args.host_peak_text or None,
+        )
+        path = write_host_peak_report(report)
+        print(f"host-peak-report {path}", file=sys.stderr, flush=True)
+        print("host-peak-ok" if report.get("ok") else "host-peak-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_vale or args.host_vale_refresh or args.host_vale_clear:
+        from src.services.desktop_status import host_vale_packet, write_host_vale_report
+        report = host_vale_packet(
+            refresh=bool(args.host_vale_refresh),
+            clear=bool(args.host_vale_clear),
+            operator=args.host_vale_operator or None,
+            reason=args.host_vale_text or None,
+        )
+        path = write_host_vale_report(report)
+        print(f"host-vale-report {path}", file=sys.stderr, flush=True)
+        print("host-vale-ok" if report.get("ok") else "host-vale-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_glen or args.host_glen_refresh or args.host_glen_clear:
+        from src.services.desktop_status import host_glen_packet, write_host_glen_report
+        report = host_glen_packet(
+            refresh=bool(args.host_glen_refresh),
+            clear=bool(args.host_glen_clear),
+            operator=args.host_glen_operator or None,
+            reason=args.host_glen_text or None,
+        )
+        path = write_host_glen_report(report)
+        print(f"host-glen-report {path}", file=sys.stderr, flush=True)
+        print("host-glen-ok" if report.get("ok") else "host-glen-fail", flush=True)
+        return
+
+    if args.host_ford or args.host_ford_refresh or args.host_ford_clear:
+        from src.services.desktop_status import host_ford_packet, write_host_ford_report
+        report = host_ford_packet(
+            refresh=bool(args.host_ford_refresh),
+            clear=bool(args.host_ford_clear),
+            operator=args.host_ford_operator or None,
+            reason=args.host_ford_text or None,
+        )
+        path = write_host_ford_report(report)
+        print(f"host-ford-report {path}", file=sys.stderr, flush=True)
+        print("host-ford-ok" if report.get("ok") else "host-ford-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_beck or args.host_beck_refresh or args.host_beck_clear:
+        from src.services.desktop_status import host_beck_packet, write_host_beck_report
+        report = host_beck_packet(
+            refresh=bool(args.host_beck_refresh),
+            clear=bool(args.host_beck_clear),
+            operator=args.host_beck_operator or None,
+            reason=args.host_beck_text or None,
+        )
+        path = write_host_beck_report(report)
+        print(f"host-beck-report {path}", file=sys.stderr, flush=True)
+        print("host-beck-ok" if report.get("ok") else "host-beck-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_mere or args.host_mere_refresh or args.host_mere_clear:
+        from src.services.desktop_status import host_mere_packet, write_host_mere_report
+        report = host_mere_packet(
+            refresh=bool(args.host_mere_refresh),
+            clear=bool(args.host_mere_clear),
+            operator=args.host_mere_operator or None,
+            reason=args.host_mere_text or None,
+        )
+        path = write_host_mere_report(report)
+        print(f"host-mere-report {path}", file=sys.stderr, flush=True)
+        print("host-mere-ok" if report.get("ok") else "host-mere-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_tarn or args.host_tarn_refresh or args.host_tarn_clear:
+        from src.services.desktop_status import host_tarn_packet, write_host_tarn_report
+        report = host_tarn_packet(
+            refresh=bool(args.host_tarn_refresh),
+            clear=bool(args.host_tarn_clear),
+            operator=args.host_tarn_operator or None,
+            reason=args.host_tarn_text or None,
+        )
+        path = write_host_tarn_report(report)
+        print(f"host-tarn-report {path}", file=sys.stderr, flush=True)
+        print("host-tarn-ok" if report.get("ok") else "host-tarn-fail", flush=True)
+        return
+    if args.host_fell or args.host_fell_refresh or args.host_fell_clear:
+        from src.services.desktop_status import host_fell_packet, write_host_fell_report
+        report = host_fell_packet(
+            refresh=bool(args.host_fell_refresh),
+            clear=bool(args.host_fell_clear),
+            operator=args.host_fell_operator or None,
+            reason=args.host_fell_text or None,
+        )
+        path = write_host_fell_report(report)
+        print(f"host-fell-report {path}", file=sys.stderr, flush=True)
+        print("host-fell-ok" if report.get("ok") else "host-fell-fail", flush=True)
+        return
+    if args.host_holt or args.host_holt_refresh or args.host_holt_clear:
+        from src.services.desktop_status import host_holt_packet, write_host_holt_report
+        report = host_holt_packet(
+            refresh=bool(args.host_holt_refresh),
+            clear=bool(args.host_holt_clear),
+            operator=args.host_holt_operator or None,
+            reason=args.host_holt_text or None,
+        )
+        path = write_host_holt_report(report)
+        print(f"host-holt-report {path}", file=sys.stderr, flush=True)
+        print("host-holt-ok" if report.get("ok") else "host-holt-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_shaw or args.host_shaw_refresh or args.host_shaw_clear:
+        from src.services.desktop_status import host_shaw_packet, write_host_shaw_report
+        report = host_shaw_packet(
+            refresh=bool(args.host_shaw_refresh),
+            clear=bool(args.host_shaw_clear),
+            operator=args.host_shaw_operator or None,
+            reason=args.host_shaw_text or None,
+        )
+        path = write_host_shaw_report(report)
+        print(f"host-shaw-report {path}", file=sys.stderr, flush=True)
+        print("host-shaw-ok" if report.get("ok") else "host-shaw-fail", flush=True)
+        return
+
+    if args.host_lea or args.host_lea_refresh or args.host_lea_clear:
+        f
