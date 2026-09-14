@@ -4,8 +4,8 @@
 
 Split copies live under `desktop/parts/`:
 
-- `launch_engine.py.part01`–`part25`
-- `pack_portable.py.part01`–`part20`
+- `launch_engine.py.part01`–`part25` (on GitHub, 8000-byte slices; part25 tail 6132)
+- `pack_portable.py.part01`–`part20` (part01 and part20 on GitHub; part02/03 currently SEE_FILE after 5becdac9 — restore 8000-byte local files next; part04–19 still local)
 
 Join on a machine with the tree:
 
@@ -15,4 +15,4 @@ python desktop/parts/join_large_files.py
 
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-Hourly automation 2026-09-14 09:04 PKT: GitHub app.py SHA 57e524ef still full (655 lines / 26092 bytes), no PLACEHOLDER. Pushed launch_engine.py.part25 (full tail through `if __name__`) and a first slice of part23 (commit e99c327). part23 on remote is still short versus local 8000 bytes; part24 not on remote yet. Backlog remains launch_engine.py, pack_portable.py, part23 restore, part24, pack_portable 01-19. Phase 4 exit still needs a Windows host.
+Hourly automation 2026-09-14 13:04 PKT: GitHub app.py SHA 57e524ef still full (655 lines / 26092 bytes), no PLACEHOLDER. Join tests 3 passed. Phase 4 exit still needs a Windows host.
