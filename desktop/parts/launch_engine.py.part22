@@ -8,3 +8,149 @@
         print(f"host-foss-report {path}", file=sys.stderr, flush=True)
         print("host-foss-ok" if report.get("ok") else "host-foss-fail", flush=True)
         return
+
+    if args.host_well or args.host_well_refresh or args.host_well_clear:
+        from src.services.desktop_status import host_well_packet, write_host_well_report
+        report = host_well_packet(
+            refresh=bool(args.host_well_refresh),
+            clear=bool(args.host_well_clear),
+            operator=args.host_well_operator or None,
+            reason=args.host_well_text or None,
+        )
+        path = write_host_well_report(report)
+        print(f"host-well-report {path}", file=sys.stderr, flush=True)
+        print("host-well-ok" if report.get("ok") else "host-well-fail", flush=True)
+        return
+
+    if args.host_pond or args.host_pond_refresh or args.host_pond_clear:
+        from src.services.desktop_status import host_pond_packet, write_host_pond_report
+        report = host_pond_packet(
+            refresh=bool(args.host_pond_refresh),
+            clear=bool(args.host_pond_clear),
+            operator=args.host_pond_operator or None,
+            reason=args.host_pond_text or None,
+        )
+        path = write_host_pond_report(report)
+        print(f"host-pond-report {path}", file=sys.stderr, flush=True)
+        print("host-pond-ok" if report.get("ok") else "host-pond-fail", flush=True)
+    if args.host_loch or args.host_loch_refresh or args.host_loch_clear:
+        from src.services.desktop_status import host_loch_packet, write_host_loch_report
+        report = host_loch_packet(
+            refresh=bool(args.host_loch_refresh),
+            clear=bool(args.host_loch_clear),
+            operator=args.host_loch_operator or None,
+            reason=args.host_loch_text or None,
+        )
+        path = write_host_loch_report(report)
+        print(f"host-loch-report {path}", file=sys.stderr, flush=True)
+        print("host-loch-ok" if report.get("ok") else "host-loch-fail", flush=True)
+    if args.host_firth or args.host_firth_refresh or args.host_firth_clear:
+        from src.services.desktop_status import host_firth_packet, write_host_firth_report
+        report = host_firth_packet(
+            refresh=bool(args.host_firth_refresh),
+            clear=bool(args.host_firth_clear),
+            operator=args.host_firth_operator or None,
+            reason=args.host_firth_text or None,
+        )
+        path = write_host_firth_report(report)
+        print(f"host-firth-report {path}", file=sys.stderr, flush=True)
+        print("host-firth-ok" if report.get("ok") else "host-firth-fail", flush=True)
+    if args.host_sound or args.host_sound_refresh or args.host_sound_clear:
+        from src.services.desktop_status import host_sound_packet, write_host_sound_report
+        report = host_sound_packet(
+            refresh=bool(args.host_sound_refresh),
+            clear=bool(args.host_sound_clear),
+            operator=args.host_sound_operator or None,
+            reason=args.host_sound_text or None,
+        )
+        path = write_host_sound_report(report)
+        print(f"host-sound-report {path}", file=sys.stderr, flush=True)
+        print("host-sound-ok" if report.get("ok") else "host-sound-fail", flush=True)
+        return
+
+    if args.host_sky or args.host_sky_refresh or args.host_sky_clear:
+        from src.services.desktop_status import host_sky_packet, write_host_sky_report
+
+        report = host_sky_packet(
+            refresh=bool(args.host_sky_refresh),
+            clear=bool(args.host_sky_clear),
+            operator=args.host_sky_operator or None,
+            reason=args.host_sky_text or None,
+        )
+        path = write_host_sky_report(report)
+        print(f"host-sky-report {path}", file=sys.stderr, flush=True)
+        print("host-sky-ok" if report.get("ok") else "host-sky-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.ci_drop:
+        from src.services.desktop_status import ci_drop_packet, write_ci_drop_report
+
+        report = ci_drop_packet()
+        path = write_ci_drop_report(report)
+        print(f"ci-drop-report {path}", flush=True)
+        print(f"target {report.get('target_dir')}", flush=True)
+        print(f"dir_present {report.get('dir_present')}", flush=True)
+        print(f"count {report.get('count')}", flush=True)
+        print(f"has_setup {report.get('has_setup')}", flush=True)
+        print(f"has_portable {report.get('has_portable')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        for item in report.get("setup") or []:
+            print(f"setup {item}", flush=True)
+        for item in report.get("portable") or []:
+            print(f"portable {item}", flush=True)
+        print("ci-drop-ok" if report.get("ok") else "ci-drop-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.ci_artifacts:
+        from src.services.desktop_status import ci_artifacts_packet, write_ci_artifacts_report
+
+        report = ci_artifacts_packet()
+        path = write_ci_artifacts_report(report)
+        print(f"ci-artifacts-report {path}", flush=True)
+        print(f"count {report.get('count')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"windows_accepted {report.get('windows_accepted')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        for item in report.get("missing_required") or []:
+            print(f"missing {item}", flush=True)
+        for item in report.get("artifacts") or []:
+            print(f"artifact {item.get('kind')} {item.get('name')}", flush=True)
+        print("ci-artifacts-ok" if report.get("ok") else "ci-artifacts-fail", flush=True)
+        raise SystemExit(0 if report.get("ok") else 1)
+
+    if args.pack_check:
+        from src.services.desktop_status import pack_check_packet, write_pack_check_report
+
+        report = pack_check_packet()
+        path = write_pack_check_report(report)
+        print(f"pack-check-report {path}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"platform {report.get('platform')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"accepted {report.get('windows_accepted')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"checked {report.get('checked')}", flush=True)
+        print(f"missing {len(report.get('missing') or [])}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        for item in report.get("missing") or []:
+            print(f"missing {item}", flush=True)
+        print("pack-check-ok" if report.get("ok") else "pack-check-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.windows_host:
+        from src.services.desktop_status import windows_host_packet, write_windows_host_report
+
+        report = windows_host_packet()
+        path = write_windows_host_report(report)
+        print(f"windows-host-report {path}", flush=True)
+        print(f"health {report.get('health_url')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"platform {report.get('platform')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        prin
