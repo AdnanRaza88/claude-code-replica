@@ -44,3 +44,141 @@
         "endlocal\r\n",
         encoding="utf-8",
     )
+    welcome_ps1 = ROOT / "desktop" / "windows" / "Welcome-AgentForge.ps1"
+    if welcome_ps1.is_file():
+        (dest / "Welcome-AgentForge.ps1").write_text(
+            welcome_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    open_ui = dest / "Open-UI-AgentForge.bat"
+    open_ui.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge open UI\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --open-ui --host 127.0.0.1 --port 8787\r\n"
+        "if errorlevel 1 (\r\n"
+        "  echo Engine is not up. Run Start-AgentForge.bat first.\r\n"
+        "  pause\r\n"
+        "  exit /b 1\r\n"
+        ")\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    open_ps1 = ROOT / "desktop" / "windows" / "Open-UI-AgentForge.ps1"
+    if open_ps1.is_file():
+        (dest / "Open-UI-AgentForge.ps1").write_text(
+            open_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    guide = dest / "Guide-AgentForge.bat"
+    guide.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge guide\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --guide --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\guide.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    guide_ps1 = ROOT / "desktop" / "windows" / "Guide-AgentForge.ps1"
+    if guide_ps1.is_file():
+        (dest / "Guide-AgentForge.ps1").write_text(
+            guide_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    preflight = dest / "Preflight-AgentForge.bat"
+    preflight.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge preflight\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --preflight --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\preflight.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    preflight_ps1 = ROOT / "desktop" / "windows" / "Preflight-AgentForge.ps1"
+    if preflight_ps1.is_file():
+        (dest / "Preflight-AgentForge.ps1").write_text(
+            preflight_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    verify = dest / "VerifyInstall-AgentForge.bat"
+    verify.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge verify install\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --verify-install --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\verify_install.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    verify_ps1 = ROOT / "desktop" / "windows" / "VerifyInstall-AgentForge.ps1"
+    if verify_ps1.is_file():
+        (dest / "VerifyInstall-AgentForge.ps1").write_text(
+            verify_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    handoff = dest / "Handoff-AgentForge.bat"
+    handoff.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge handoff\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --handoff --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\handoff.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    handoff_ps1 = ROOT / "desktop" / "windows" / "Handoff-AgentForge.ps1"
+    if handoff_ps1.is_file():
+        (dest / "Handoff-AgentForge.ps1").write_text(
+            handoff_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    signoff = dest / "Signoff-AgentForge.bat"
+    signoff.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge signoff\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --signoff --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\signoff.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    signoff_ps1 = ROOT / "desktop" / "windows" / "Signoff-AgentForge.ps1"
+    if signoff_ps1.is_file():
+        (dest / "Signoff-AgentForge.ps1").write_text(
+            signoff_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    accept = dest / "Accept-AgentForge.bat"
+    accept.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title
