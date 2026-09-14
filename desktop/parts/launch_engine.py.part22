@@ -1,0 +1,10 @@
+   report = host_foss_packet(
+            refresh=bool(args.host_foss_refresh),
+            clear=bool(args.host_foss_clear),
+            operator=args.host_foss_operator or None,
+            reason=args.host_foss_text or None,
+        )
+        path = write_host_foss_report(report)
+        print(f"host-foss-report {path}", file=sys.stderr, flush=True)
+        print("host-foss-ok" if report.get("ok") else "host-foss-fail", flush=True)
+        return
