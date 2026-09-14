@@ -101,3 +101,62 @@ item.get('id')} {item.get('action')}", flush=True)
             print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
         print("acceptance-ok" if report["ok"] else "acceptance-fail", flush=True)
         return 0 if report["ok"] else 1
+
+    if args.signoff:
+        report = signoff_packet(args.host, args.port)
+        path = write_signoff_report(report)
+        print(f"signoff-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        print(f"silent {report.get('silent')}", flush=True)
+        for check in report.get("criteria") or []:
+            mark = "ok" if check.get("ok") else "open"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("signoff-ok" if report["ok"] else "signoff-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.handoff:
+        report = handoff_packet(args.host, args.port)
+        path = write_handoff_report(report)
+        print(f"handoff-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"silent {report.get('silent')}", flush=True)
+        for i, step in enumerate(report.get("steps") or [], start=1):
+            print(f"{i}. {step}", flush=True)
+        print("handoff-ok" if report["ok"] else "handoff-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.verify_install:
+        report = verify_install()
+        path = write_verify_report(report)
+        print(f"verify-report {path}", flush=True)
+        print(f"silent {report.get('silent')}", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("verify-ok" if report["ok"] else "verify-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.preflight:
+        report = preflight_check(args.host, args.port)
+        path = write_preflight_report(report)
+        print(f"preflight-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"silent {report.get('silent')}", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("preflight-ok" if report["ok"] else "preflight-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.guide:
+        report = guide_check(args.host, args.port)
+        path = write_guide_report(report)
+        print(f"guide-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"silent {report.get('silent')}", flush=True)
+        for i, st

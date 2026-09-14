@@ -1,0 +1,200 @@
+from __future__ import annotations
+
+import argparse
+import shutil
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+INCLUDE_DIRS = (
+    "backend",
+    "src",
+    "frontend",
+    "skills",
+    "config",
+    "knowledge",
+    "desktop",
+)
+INCLUDE_FILES = (
+    "requirements.txt",
+    "STRUCTURE.md",
+    "desktop/VERSION",
+)
+
+
+def plan_copy(root: Path = ROOT) -> list[tuple[Path, str]]:
+    items: list[tuple[Path, str]] = []
+    for name in INCLUDE_DIRS:
+        src = root / name
+        if src.is_dir():
+            items.append((src, name))
+    for name in INCLUDE_FILES:
+        src = root / name
+        if src.is_file():
+            items.append((src, name))
+    return items
+
+
+def write_launchers(dest: Path) -> None:
+    dest.mkdir(parents=True, exist_ok=True)
+    wait_src = ROOT / "desktop" / "windows" / "Wait-And-Open.ps1"
+    wait_dst = dest / "Wait-And-Open.ps1"
+    if wait_src.is_file():
+        wait_dst.write_text(wait_src.read_text(encoding="utf-8"), encoding="utf-8")
+    else:
+        wait_dst.write_text(
+            "param([string]$HostName='127.0.0.1',[int]$Port=8787)\r\n"
+            "Start-Process \"http://${HostName}:${Port}/ui/\"\r\n",
+            encoding="utf-8",
+        )
+    resolve_src = ROOT / "desktop" / "windows" / "Resolve-Python.ps1"
+    if resolve_src.is_file():
+        (dest / "Resolve-Python.ps1").write_text(
+            resolve_src.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    bat = dest / "Start-AgentForge.bat"
+    stop = dest / "Stop-AgentForge.bat"
+    stop.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge stop\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"AGENTFORGE_HOST=127.0.0.1\"\r\n"
+        "set \"AGENTFORGE_PORT=8787\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --stop --host %AGENTFORGE_HOST% --port %AGENTFORGE_PORT%\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    bat.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"AGENTFORGE_HOST=127.0.0.1\"\r\n"
+        "set \"AGENTFORGE_PORT=8787\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --ensure-deps\r\n"
+        "start \"AgentForge engine\" /min \"%PY%\" desktop\\launch_engine.py --host %AGENTFORGE_HOST% --port %AGENTFORGE_PORT%\r\n"
+        "powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Wait-And-Open.ps1\" -HostName %AGENTFORGE_HOST% -Port %AGENTFORGE_PORT%\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    smoke = dest / "Smoke-AgentForge.bat"
+    smoke.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge smoke\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --smoke --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\smoke.json\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    smoke_ps1_src = ROOT / "desktop" / "windows" / "Smoke-AgentForge.ps1"
+    if smoke_ps1_src.is_file():
+        (dest / "Smoke-AgentForge.ps1").write_text(
+            smoke_ps1_src.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    selftest = dest / "SelfTest-AgentForge.bat"
+    selftest.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge self-test\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --self-test --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    firstrun = dest / "FirstRun-AgentForge.bat"
+    firstrun.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge first-run\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --first-run --host 127.0.0.1 --port 8787\r\n"
+        "if errorlevel 1 (\r\n"
+        "  echo.\r\n"
+        "  echo First-run failed. See .agentforge\\logs\\last_error.txt\r\n"
+        "  pause\r\n"
+        "  exit /b 1\r\n"
+        ")\r\n"
+        "echo.\r\n"
+        "echo First-run ok. Starting AgentForge...\r\n"
+        "call \"%~dp0Start-AgentForge.bat\"\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    firstrun_ps1 = ROOT / "desktop" / "windows" / "FirstRun-AgentForge.ps1"
+    if firstrun_ps1.is_file():
+        (dest / "FirstRun-AgentForge.ps1").write_text(
+            firstrun_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    repair = dest / "Repair-AgentForge.bat"
+    repair.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge repair\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --repair --host 127.0.0.1 --port 8787\r\n"
+        "if errorlevel 1 (\r\n"
+        "  echo.\r\n"
+        "  echo Repair failed. See .agentforge\\logs\\last_error.txt\r\n"
+        "  pause\r\n"
+        "  exit /b 1\r\n"
+        ")\r\n"
+        "echo.\r\n"
+        "echo Repair ok. See .agentforge\\logs\\repair.json\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    repair_ps1 = ROOT / "desktop" / "windows" / "Repair-AgentForge.ps1"
+    if repair_ps1.is_file():
+        (dest / "Repair-AgentForge.ps1").write_text(
+            repair_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    collect = dest / "Collect-Logs-AgentForge.bat"
+    collect.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge collect logs\r\n"
+        "cd /d \"%~dp0\"\r\n"
+        "for /f \"usebackq delims=\" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File \"%~dp0Resolve-Python.ps1\" -RepoRoot \"%~dp0\"`) do set \"PY=%%I\"\r\n"
+        "if not defined PY set \"PY=python\"\r\n"
+        "set \"PYTHONPATH=%CD%;%PYTHONPATH%\"\r\n"
+        "\"%PY%\" desktop\\launch_engine.py --bundle --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Bundle: .agentforge\\logs\\support-*.zip\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    collect_ps1 = ROOT / "desktop" / "windows" / "Collect-Logs-AgentForge.ps1"
+    if collect_ps1.is_file():
+        (dest / "Collect-Logs-AgentForge.ps1").write_text(
+            collect_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    ready = dest / "Ready-AgentForge.bat"
+    ready.write_text(
+        "@echo off
