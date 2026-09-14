@@ -1,0 +1,174 @@
+report)
+        print(f"host-sun-report {path}", file=sys.stderr, flush=True)
+        print("host-sun-ok" if report.get("ok") else "host-sun-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_sea or args.host_sea_refresh or args.host_sea_clear:
+        from src.services.desktop_status import host_sea_packet, write_host_sea_report
+
+        report = host_sea_packet(
+            refresh=bool(args.host_sea_refresh),
+            clear=bool(args.host_sea_clear),
+            operator=args.host_sea_operator or None,
+            reason=args.host_sea_text or None,
+        )
+        path = write_host_sea_report(report)
+        print(f"host-sea-report {path}", file=sys.stderr, flush=True)
+        print("host-sea-ok" if report.get("ok") else "host-sea-fail", flush=True)
+        return 0 if report.get("ok") else 2
+
+    if args.host_ice or args.host_ice_refresh or args.host_ice_clear:
+        from src.services.desktop_status import host_ice_packet, write_host_ice_report
+
+        report = host_ice_packet(
+            refresh=bool(args.host_ice_refresh),
+            clear=bool(args.host_ice_clear),
+            operator=args.host_ice_operator or None,
+            reason=args.host_ice_text or None,
+        )
+        path = write_host_ice_report(report)
+        print(f"host-ice-report {path}", file=sys.stderr, flush=True)
+        print("host-ice-ok" if report.get("ok") else "host-ice-fail", flush=True)
+        return 0 if report.get("ok") else 2
+    if args.host_gem or args.host_gem_refresh or args.host_gem_clear:
+        from src.services.desktop_status import host_gem_packet, write_host_gem_report
+
+        report = host_gem_packet(
+            refresh=bool(args.host_gem_refresh),
+            clear=bool(args.host_gem_clear),
+            operator=args.host_gem_operator or None,
+            reason=args.host_gem_text or None,
+        )
+        path = write_host_gem_report(report)
+        print(f"host-gem-report {path}", file=sys.stderr, flush=True)
+        print("host-gem-ok" if report.get("ok") else "host-gem-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_ore or args.host_ore_refresh or args.host_ore_clear:
+        from src.services.desktop_status import host_ore_packet, write_host_ore_report
+
+        report = host_ore_packet(
+            refresh=bool(args.host_ore_refresh),
+            clear=bool(args.host_ore_clear),
+            operator=args.host_ore_operator or None,
+            reason=args.host_ore_text or None,
+        )
+        path = write_host_ore_report(report)
+        print(f"host-ore-report {path}", file=sys.stderr, flush=True)
+        print("host-ore-ok" if report.get("ok") else "host-ore-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_tin or args.host_tin_refresh or args.host_tin_clear:
+        from src.services.desktop_status import host_tin_packet, write_host_tin_report
+
+        report = host_tin_packet(
+            refresh=bool(args.host_tin_refresh),
+            clear=bool(args.host_tin_clear),
+            operator=args.host_tin_operator or None,
+            reason=args.host_tin_text or None,
+        )
+        path = write_host_tin_report(report)
+        print(f"host-tin-report {path}", file=sys.stderr, flush=True)
+        print("host-tin-ok" if report.get("ok") else "host-tin-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_lead or args.host_lead_refresh or args.host_lead_clear:
+        from src.services.desktop_status import host_lead_packet, write_host_lead_report
+
+        report = host_lead_packet(
+            refresh=bool(args.host_lead_refresh),
+            clear=bool(args.host_lead_clear),
+            operator=args.host_lead_operator or None,
+            reason=args.host_lead_text or None,
+        )
+        path = write_host_lead_report(report)
+        print(f"host-lead-report {path}", file=sys.stderr, flush=True)
+        print("host-lead-ok" if report.get("ok") else "host-lead-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_zinc or args.host_zinc_refresh or args.host_zinc_clear:
+        from src.services.desktop_status import host_zinc_packet, write_host_zinc_report
+
+        report = host_zinc_packet(
+            refresh=bool(args.host_zinc_refresh),
+            clear=bool(args.host_zinc_clear),
+            operator=args.host_zinc_operator or None,
+            reason=args.host_zinc_text or None,
+        )
+        path = write_host_zinc_report(report)
+        print(f"host-zinc-report {path}", file=sys.stderr, flush=True)
+        print("host-zinc-ok" if report.get("ok") else "host-zinc-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_iron or args.host_iron_refresh or args.host_iron_clear:
+        from src.services.desktop_status import host_iron_packet, write_host_iron_report
+
+        report = host_iron_packet(
+            refresh=bool(args.host_iron_refresh),
+            clear=bool(args.host_iron_clear),
+            operator=args.host_iron_operator or None,
+            reason=args.host_iron_text or None,
+        )
+        path = write_host_iron_report(report)
+        print(f"host-iron-report {path}", file=sys.stderr, flush=True)
+        print("host-iron-ok" if report.get("ok") else "host-iron-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_gold or args.host_gold_refresh or args.host_gold_clear:
+        from src.services.desktop_status import host_gold_packet, write_host_gold_report
+
+        report = host_gold_packet(
+            refresh=bool(args.host_gold_refresh),
+            clear=bool(args.host_gold_clear),
+            operator=args.host_gold_operator or None,
+            reason=args.host_gold_text or None,
+        )
+        path = write_host_gold_report(report)
+        print(f"host-gold-report {path}", file=sys.stderr, flush=True)
+        print("host-gold-ok" if report.get("ok") else "host-gold-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_ink or args.host_ink_refresh or args.host_ink_clear:
+        from src.services.desktop_status import host_ink_packet, write_host_ink_report
+
+        report = host_ink_packet(
+            refresh=bool(args.host_ink_refresh),
+            clear=bool(args.host_ink_clear),
+            operator=args.host_ink_operator or None,
+            reason=args.host_ink_text or None,
+        )
+        path = write_host_ink_report(report)
+        print(f"host-ink-report {path}", file=sys.stderr, flush=True)
+        print("host-ink-ok" if report.get("ok") else "host-ink-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_wax or args.host_wax_refresh or args.host_wax_clear:
+        from src.services.desktop_status import host_wax_packet, write_host_wax_report
+
+        report = host_wax_packet(
+            refresh=bool(args.host_wax_refresh),
+            clear=bool(args.host_wax_clear),
+            operator=args.host_wax_operator or None,
+            reason=args.host_wax_text or None,
+        )
+        path = write_host_wax_report(report)
+        print(f"host-wax-report {path}", file=sys.stderr, flush=True)
+        print("host-wax-ok" if report.get("ok") else "host-wax-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_oil or args.host_oil_refresh or args.host_oil_clear:
+        from src.services.desktop_status import host_oil_packet, write_host_oil_report
+
+        report = host_oil_packet(
+            refresh=bool(args.host_oil_refresh),
+            clear=bool(args.host_oil_clear),
+            operator=args.host_oil_operator or None,
+            reason=args.host_oil_text or None,
+        )
+        path = write_host_oil_report(report)
+        print(f"host-oil-report {path}", file=sys.stderr, flush=True)
+        print("host-oil-ok" if report.get("ok") else "host-oil-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_sap or args.host_sap_refresh or args.host_sap_clear:
+        from s

@@ -1,0 +1,154 @@
+rc.services.desktop_status import host_sap_packet, write_host_sap_report
+
+        report = host_sap_packet(
+            refresh=bool(args.host_sap_refresh),
+            clear=bool(args.host_sap_clear),
+            operator=args.host_sap_operator or None,
+            reason=args.host_sap_text or None,
+        )
+        path = write_host_sap_report(report)
+        print(f"host-sap-report {path}", file=sys.stderr, flush=True)
+        print("host-sap-ok" if report.get("ok") else "host-sap-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_tar or args.host_tar_refresh or args.host_tar_clear:
+        from src.services.desktop_status import host_tar_packet, write_host_tar_report
+
+        report = host_tar_packet(
+            refresh=bool(args.host_tar_refresh),
+            clear=bool(args.host_tar_clear),
+            operator=args.host_tar_operator or None,
+            reason=args.host_tar_text or None,
+        )
+        path = write_host_tar_report(report)
+        print(f"host-tar-report {path}", file=sys.stderr, flush=True)
+        print("host-tar-ok" if report.get("ok") else "host-tar-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.host_web or args.host_web_refresh or args.host_web_clear:
+        from src.services.desktop_status import host_web_packet, write_host_web_report
+        report = host_web_packet(
+            refresh=bool(args.host_web_refresh),
+            clear=bool(args.host_web_clear),
+            operator=args.host_web_operator or None,
+            reason=args.host_web_text or None,
+        )
+        path = write_host_web_report(report)
+        print(f"host-web-report {path}", file=sys.stderr, flush=True)
+        print("host-web-ok" if report.get("ok") else "host-web-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_ray or args.host_ray_refresh or args.host_ray_clear:
+        from src.services.desktop_status import host_ray_packet, write_host_ray_report
+        report = host_ray_packet(
+            refresh=bool(args.host_ray_refresh),
+            clear=bool(args.host_ray_clear),
+            operator=args.host_ray_operator or None,
+            reason=args.host_ray_text or None,
+        )
+        path = write_host_ray_report(report)
+        print(f"host-ray-report {path}", file=sys.stderr, flush=True)
+        print("host-ray-ok" if report.get("ok") else "host-ray-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_beam or args.host_beam_refresh or args.host_beam_clear:
+        from src.services.desktop_status import host_beam_packet, write_host_beam_report
+        report = host_beam_packet(
+            refresh=bool(args.host_beam_refresh),
+            clear=bool(args.host_beam_clear),
+            operator=args.host_beam_operator or None,
+            reason=args.host_beam_text or None,
+        )
+        path = write_host_beam_report(report)
+        print(f"host-beam-report {path}", file=sys.stderr, flush=True)
+        print("host-beam-ok" if report.get("ok") else "host-beam-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_glow or args.host_glow_refresh or args.host_glow_clear:
+        from src.services.desktop_status import host_glow_packet, write_host_glow_report
+        report = host_glow_packet(
+            refresh=bool(args.host_glow_refresh),
+            clear=bool(args.host_glow_clear),
+            operator=args.host_glow_operator or None,
+            reason=args.host_glow_text or None,
+        )
+        path = write_host_glow_report(report)
+        print(f"host-glow-report {path}", file=sys.stderr, flush=True)
+        print("host-glow-ok" if report.get("ok") else "host-glow-fail", flush=True)
+    if args.host_mist or args.host_mist_refresh or args.host_mist_clear:
+        from src.services.desktop_status import host_mist_packet, write_host_mist_report
+        report = host_mist_packet(
+            refresh=bool(args.host_mist_refresh),
+            clear=bool(args.host_mist_clear),
+            operator=args.host_mist_operator or None,
+            reason=args.host_mist_text or None,
+        )
+        path = write_host_mist_report(report)
+        print(f"host-mist-report {path}", file=sys.stderr, flush=True)
+        print("host-mist-ok" if report.get("ok") else "host-mist-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_haze or args.host_haze_refresh or args.host_haze_clear:
+        from src.services.desktop_status import host_haze_packet, write_host_haze_report
+        report = host_haze_packet(
+            refresh=bool(args.host_haze_refresh),
+            clear=bool(args.host_haze_clear),
+            operator=args.host_haze_operator or None,
+            reason=args.host_haze_text or None,
+        )
+        path = write_host_haze_report(report)
+        print(f"host-haze-report {path}", file=sys.stderr, flush=True)
+        print("host-haze-ok" if report.get("ok") else "host-haze-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_dawn or args.host_dawn_refresh or args.host_dawn_clear:
+        from src.services.desktop_status import host_dawn_packet, write_host_dawn_report
+        report = host_dawn_packet(
+            refresh=bool(args.host_dawn_refresh),
+            clear=bool(args.host_dawn_clear),
+            operator=args.host_dawn_operator or None,
+            reason=args.host_dawn_text or None,
+        )
+        path = write_host_dawn_report(report)
+        print(f"host-dawn-report {path}", file=sys.stderr, flush=True)
+        print("host-dawn-ok" if report.get("ok") else "host-dawn-fail", flush=True)
+    if args.host_dusk or args.host_dusk_refresh or args.host_dusk_clear:
+        from src.services.desktop_status import host_dusk_packet, write_host_dusk_report
+        report = host_dusk_packet(
+            refresh=bool(args.host_dusk_refresh),
+            clear=bool(args.host_dusk_clear),
+            operator=args.host_dusk_operator or None,
+            reason=args.host_dusk_text or None,
+        )
+        path = write_host_dusk_report(report)
+        print(f"host-dusk-report {path}", file=sys.stderr, flush=True)
+        print("host-dusk-ok" if report.get("ok") else "host-dusk-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_eve or args.host_eve_refresh or args.host_eve_clear:
+        from src.services.desktop_status import host_eve_packet, write_host_eve_report
+        report = host_eve_packet(
+            refresh=bool(args.host_eve_refresh),
+            clear=bool(args.host_eve_clear),
+            operator=args.host_eve_operator or None,
+            reason=args.host_eve_text or None,
+        )
+        path = write_host_eve_report(report)
+        print(f"host-eve-report {path}", file=sys.stderr, flush=True)
+        print("host-eve-ok" if report.get("ok") else "host-eve-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_moon or args.host_moon_refresh or args.host_moon_clear:
+        from src.services.desktop_status import host_moon_packet, write_host_moon_report
+        report = host_moon_packet(
+            refresh=bool(args.host_moon_refresh),
+            clear=bool(args.host_moon_clear),
+            operator=args.host_moon_operator or None,
+            reason=args.host_moon_text or None,
+        )
+        path = write_host_moon_report(report)
+        print(f"host-moon-report {path}", file=sys.stderr, flush=True)
+        print("host-moon-ok" if report.get("ok") else "host-moon-fail", flush=True)
+        return 0 if report.get("ok") else 1
+    if args.host_star or args.host_star_refresh or args.host_star_clear:
+        from src.services.desktop_status import host_star_packet, write_host_star_report
+        report = host_star_packet(
+            refresh=bool(args.host_star_refresh),
+            clear=bool(args.host_star_clear),
+            operator=args.host_star_operator or None,
+            reason=args.host_star_text or None,
+        )
+        path = write_host_star_re
