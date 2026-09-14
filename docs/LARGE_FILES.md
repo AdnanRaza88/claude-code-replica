@@ -15,4 +15,4 @@ python desktop/parts/join_large_files.py
 
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-Hourly automation 2026-09-13 23:06 PKT: GitHub app.py SHA 57e524ef still full (655 lines / 26092 bytes), no PLACEHOLDER. Pushing launch_engine.py.part08 (8000 bytes, no PLACEHOLDER). Remote parts now include part01-07 plus this part08. Backlog remains launch_engine.py, pack_portable.py, launch_engine parts 09-25, pack_portable 01-19. Phase 4 exit still needs a Windows host.
+Hourly automation 2026-09-14 07:15 PKT: GitHub app.py SHA 57e524ef still full (655 lines / 26092 bytes), no PLACEHOLDER. Restored launch_engine.py.part20 and part21 (commit 388083a). Backlog remains launch_engine.py, pack_portable.py, launch_engine parts 22-25, pack_portable 01-19. Phase 4 exit still needs a Windows host.
