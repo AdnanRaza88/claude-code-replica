@@ -1,2 +1,25 @@
 t(f"accepted {report.get('windows_accepted')}", flush=True)
         print(f"blocked_on_linux {report.get('blocked_on_linux')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        for item in report.get("steps") or []:
+            print(f"step {item.get('id')} {item.get('command')}", flush=True)
+        print("windows-host-ok" if report.get("ok") else "windows-host-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.ci_go:
+        from src.services.desktop_status import ci_go_packet, write_ci_go_report
+
+        report = ci_go_packet()
+        path = write_ci_go_report(report)
+        print(f"ci-go-report {path}", flush=True)
+        print(f"health {report.get('health_url')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        print(f"platform {report.get('platform')}", flush=True)
+        print(f"windows_host {report.get('windows_host')}", flush=True)
+        print(f"accepted {report.get('windows_accepted')}", flush=True)
+        print(f"complete {report.get('complete')}", flush=True)
+        print(f"exit_met {report.get('exit_met')}", flush=True)
+        for item in report.get("steps") or []:
+            print(f"step {item.get('id')} {item.get('bat')} {item.get('flag')}", flush=True)
+        print("ci-go-ok" if report.get("ok") else "ci-go-fail", flush=True)
+        return 0 if report.get("ok") else 1

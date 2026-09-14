@@ -1,0 +1,167 @@
+ep in enumerate(report.get("steps") or [], start=1):
+            print(f"{i}. {step}", flush=True)
+        print("guide-ok" if report["ok"] else "guide-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.welcome:
+        report = welcome_check(args.host, args.port)
+        path = write_welcome_report(report)
+        print(f"welcome-report {path}", flush=True)
+        print(f"next {report.get('next')}", flush=True)
+        print(report.get("hint") or "", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("welcome-ok" if report["ok"] else "welcome-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.open_ui:
+        report = open_ui(args.host, args.port)
+        print(report.get("ui") or "", flush=True)
+        print("open-ui-ok" if report["ok"] else "open-ui-fail", flush=True)
+        return 0 if report["ok"] else 2
+
+    if args.ready:
+        report = ready_check()
+        path = write_ready_report(report)
+        print(f"ready-report {path}", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("ready-ok" if report["ok"] else "ready-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.bundle:
+        report = collect_bundle(args.host, args.port)
+        write_bundle_report(report)
+        print(f"bundle {report['path']}", flush=True)
+        print("bundle-ok" if report.get("ok") else "bundle-fail", flush=True)
+        return 0 if report.get("ok") else 1
+
+    if args.repair:
+        report = repair(args.host, args.port)
+        path = write_repair_report(report)
+        print(f"repair-report {path}", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("repair-ok" if report["ok"] else "repair-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.first_run:
+        report = first_run(args.host, args.port)
+        path = write_first_run_report(report)
+        print(f"first-run-report {path}", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        print("first-run-ok" if report["ok"] else "first-run-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.self_test or args.self_test_live or args.smoke:
+        report = self_test(args.host, args.port, live=args.self_test_live)
+        if args.smoke:
+            path = write_smoke_report(report)
+            print(f"smoke-report {path}", flush=True)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:28} {check['detail']}", flush=True)
+        label = "smoke" if args.smoke else "self-test"
+        print(f"{label}-ok" if report["ok"] else f"{label}-fail", flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.doctor:
+        report = doctor(args.host, args.port)
+        for check in report["checks"]:
+            mark = "ok" if check["ok"] else "fail"
+            print(f"{mark:4} {check['id']:12} {check['detail']}", flush=True)
+        print("ready" if report["ready"] else ("install-ok" if report["ok"] else "not-ready"), flush=True)
+        return 0 if report["ok"] else 1
+
+    if args.status:
+        info = engine_status(args.host, args.port)
+        state = "up" if info["healthy"] else "down"
+        print(
+            f"{state} {info['ui']} pid={info['pid'] or '-'} lock_stale={info['lock_stale']}",
+            flush=True,
+        )
+        return 0 if info["healthy"] else 1
+
+    if args.stop:
+        return stop_engine(args.host, args.port)
+
+    if args.ensure_deps:
+        rc = ensure_deps()
+        if rc == 0:
+            print("deps ok", flush=True)
+        return rc
+    if missing_deps():
+        rc = ensure_deps()
+        if rc != 0:
+            return rc
+
+    if not acquire_lock():
+        port, mode = pick_bind(args.host, args.port)
+        if mode == "attach":
+            write_port_file(port)
+            print(f"AgentForge engine already up {_ui_url(args.host, port)}", flush=True)
+            return 0
+        print("AgentForge engine already starting (lock held)", file=sys.stderr)
+        log_line("lock held, abort spawn")
+        return 4
+
+    port, mode = pick_bind(args.host, args.port)
+    write_port_file(port)
+    if mode == "attach":
+        print(f"AgentForge engine already up {_ui_url(args.host, port)}", flush=True)
+        log_line(f"attach {port}")
+        release_lock()
+        return 0
+    if mode == "busy":
+        print(f"ports {args.port}-{args.port + 5} busy and not AgentForge", file=sys.stderr)
+        log_line("ports busy")
+        release_lock()
+        return 3
+
+    log_line(f"spawn {port}")
+    cmd = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "backend.main:app",
+        "--host",
+        args.host,
+        "--port",
+        str(port),
+        "--log-level",
+        "info",
+    ]
+    if args.reload:
+        cmd.append("--reload")
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+    log_fh = LOG_FILE.open("a", encoding="utf-8")
+    proc = subprocess.Popen(cmd, cwd=str(ROOT), env=env, stdout=log_fh, stderr=log_fh)
+    write_child(proc.pid)
+    try:
+        if not wait_healthy(args.host, port):
+            proc.terminate()
+            log_line("health timeout")
+            return 2
+        print(f"AgentForge engine {_ui_url(args.host, port)}", flush=True)
+        return proc.wait()
+    except KeyboardInterrupt:
+        proc.terminate()
+        return 0
+    finally:
+        try:
+            log_fh.close()
+        except OSError:
+            pass
+        clear_child()
+        release_lock()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
