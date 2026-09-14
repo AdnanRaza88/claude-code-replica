@@ -1,18 +1,26 @@
-# Large files
+# Large desktop scripts not yet on GitHub as single files
 
-`desktop/launch_engine.py` and `desktop/pack_portable.py` exceed the GitHub contents API size that hourly automation can push in one blob.
+These two files exist locally and are required for a full Windows pack. The GitHub connector payload limit blocks a single-commit push of their full text.
 
-They are split under `desktop/parts/`:
+| Path | Local size | Role |
+|------|------------|------|
+| `desktop/launch_engine.py` | ~198 KB / 4241 lines | Engine start/stop/doctor + Phase-4 host packets |
+| `desktop/pack_portable.py` | ~152 KB / 3492 lines | Builds the portable zip layout |
 
-- `launch_engine.py.part01` … `launch_engine.py.part25`
-- `pack_portable.py.part01` … `pack_portable.py.part20`
+Until the single files land on `main`, a clone can still:
 
-Join on a clone:
+1. Start the FastAPI engine: `python -m uvicorn backend.main:app --host 127.0.0.1 --port 8787`
+2. Or use the slim launcher on GitHub: `python desktop/launch_engine_min.py` (start / `--status` / `--stop` / `--doctor` / `--open-ui`)
+3. Build a slim portable folder: `python desktop/pack_portable_min.py`
+4. Rebuild the full scripts from parts:
 
 ```
 python desktop/parts/join_large_files.py
 ```
 
-Hourly 2026-09-14 06:08 PKT: parts 20-25 of launch_engine staged for GitHub. Full `app.py` on main remains SHA 57e524ef (655 lines, no PLACEHOLDER).
+Slices are 8 KB each (45 parts: launch_engine 25 + pack_portable 20) so the GitHub connector can accept them in small batches. Checksums live in `desktop/parts/PARTS_SHA256.txt`. After join, compare those hashes before copying the rebuilt files to `desktop/`.
 
-Do not replace `app.py` with PLACEHOLDER.
+Remote `desktop/parts/` as of 2026-09-14 06:08 PKT: launch_engine parts through part19 full; part20–21 exist on main but the 06:08 first pass was truncated — restore 8000-byte originals next run, then part22–25 and pack_portable 01–19. GitHub `app.py` SHA 57e524ef (full 655-line AgentForge Streamlit, no PLACEHOLDER). Commit bf7a2ede.
+
+5. Open `/ui/`
+6. Use `desktop/windows/Start-AgentForge.bat` only after full `launch_engine.py` is present
