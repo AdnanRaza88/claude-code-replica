@@ -1,12 +1,1 @@
- AgentForge accept Windows\r\n"
-        "cd /d "%~dp0"\r\n"
-        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
-        "if not defined PY set "PY=python"\r\n"
-        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
-        "\"%PY%\" desktop\\launch_engine.py --accept-windows --host 127.0.0.1 --port 8787\r\n"
-        "echo.\r\n"
-        "echo Report: .agentforge\\logs\\acceptance.txt\r\n"
-        "pause\r\n"
-        "endlocal\r\n",
-        encoding="utf-8",
-    )
+SEE_FILE
