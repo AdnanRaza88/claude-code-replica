@@ -15,4 +15,4 @@ python desktop/parts/join_large_files.py
 
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-Hourly automation 2026-09-14 23:04 PKT: GitHub app.py SHA 57e524ef still full (655 lines / 26092 bytes), no PLACEHOLDER. Local pack_portable.py.part02–05 remain 8000 bytes each. GitHub part02 is still a truncated slice (SHA ca112387). Join tests 3 passed. Backlog: launch_engine.py, pack_portable.py, pack parts 02-19. Phase 4 exit still needs a Windows host.
+Hourly automation 2026-09-15 00:18 PKT: GitHub app.py SHA 57e524ef still full (655 lines / 26092 bytes), no PLACEHOLDER. Local pack_portable.py.part02–09 remain 8000 bytes each. GitHub part02 still truncated (SHA ca112387). Backlog: launch_engine.py, pack_portable.py, pack parts 02-19. Phase 4 exit still needs a Windows host.
