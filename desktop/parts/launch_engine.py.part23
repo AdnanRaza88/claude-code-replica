@@ -1,0 +1,2 @@
+t(f"accepted {report.get('windows_accepted')}", flush=True)
+        print(f"blocked_on_linux {report.get('blocked_on_linux')}", flush=True)
