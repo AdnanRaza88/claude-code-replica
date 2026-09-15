@@ -41,3 +41,145 @@
         "endlocal\r\n",
         encoding="utf-8",
     )
+    release_ps1 = ROOT / "desktop" / "windows" / "Release-AgentForge.ps1"
+    if release_ps1.is_file():
+        (dest / "Release-AgentForge.ps1").write_text(
+            release_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    operator = dest / "Operator-AgentForge.bat"
+    operator.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge operator runbook\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --operator --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\operator.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    operator_ps1 = ROOT / "desktop" / "windows" / "Operator-AgentForge.ps1"
+    if operator_ps1.is_file():
+        (dest / "Operator-AgentForge.ps1").write_text(
+            operator_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    closeout = dest / "Closeout-AgentForge.bat"
+    closeout.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge phase-4 closeout\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --closeout --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\closeout.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    closeout_ps1 = ROOT / "desktop" / "windows" / "Closeout-AgentForge.ps1"
+    if closeout_ps1.is_file():
+        (dest / "Closeout-AgentForge.ps1").write_text(
+            closeout_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    gate = dest / "Gate-AgentForge.bat"
+    gate.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge phase-4 gate\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --gate --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\gate.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    gate_ps1 = ROOT / "desktop" / "windows" / "Gate-AgentForge.ps1"
+    if gate_ps1.is_file():
+        (dest / "Gate-AgentForge.ps1").write_text(
+            gate_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    wsmoke = dest / "WindowsSmoke-AgentForge.bat"
+    wsmoke.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge Windows smoke\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --windows-smoke --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\windows_smoke.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    wsmoke_ps1 = ROOT / "desktop" / "windows" / "WindowsSmoke-AgentForge.ps1"
+    if wsmoke_ps1.is_file():
+        (dest / "WindowsSmoke-AgentForge.ps1").write_text(
+            wsmoke_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    onboard = dest / "Onboard-AgentForge.bat"
+    onboard.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge onboard\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --onboard --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\onboard.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    onboard_ps1 = ROOT / "desktop" / "windows" / "Onboard-AgentForge.ps1"
+    if onboard_ps1.is_file():
+        (dest / "Onboard-AgentForge.ps1").write_text(
+            onboard_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    wpath = dest / "WindowsPath-AgentForge.bat"
+    wpath.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge windows-path\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --windows-path --host 127.0.0.1 --port 8787\r\n"
+        "echo.\r\n"
+        "echo Report: .agentforge\\logs\\windows_path.txt\r\n"
+        "pause\r\n"
+        "endlocal\r\n",
+        encoding="utf-8",
+    )
+    wpath_ps1 = ROOT / "desktop" / "windows" / "WindowsPath-AgentForge.ps1"
+    if wpath_ps1.is_file():
+        (dest / "WindowsPath-AgentForge.ps1").write_text(
+            wpath_ps1.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    ci = dest / "CiTrigger-AgentForge.bat"
+    ci.write_text(
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "title AgentForge ci-trigger\r\n"
+        "cd /d "%~dp0"\r\n"
+        "for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Resolve-Python.ps1" -RepoRoot "%~dp0"`) do set "PY=%%I"\r\n"
+        "if not defined PY set "PY=python"\r\n"
+        "set "PYTHONPATH=%CD%;%PYTHONPATH%"\r\n"
+        ""%PY%" desktop\\launch_engine.py --ci-trigger --host 127.0.0.1 --port 8787\r\n"
+      
