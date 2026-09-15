@@ -5,7 +5,7 @@
 Split copies live under `desktop/parts/`:
 
 - `launch_engine.py.part01`–`part25` (on main, full sizes)
-- `pack_portable.py.part01` (8000), `part02` (7998), `part03` local 8000 (remote still short), `part20` (on main)
+- `pack_portable.py.part01` (8000), `part02` (~8000), `part03` local 8000 (remote still short), `part20` (on main)
 - `pack_portable.py.part04`–`part19` still local-only (each 8000 except last)
 
 Join on a machine with the tree:
@@ -16,7 +16,7 @@ python desktop/parts/join_large_files.py
 
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-## 2026-09-16 00:13 PKT
+## 2026-09-16 01:06 PKT
 
 - GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER. Local match.
 - Join + pack_min + launch_min tests 7 passed.
