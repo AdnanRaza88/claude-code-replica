@@ -47,3 +47,11 @@ That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py
 - Accidental short push then partial restore left remote part03 at 799 bytes (d1e74477). Next run must overwrite with exact local 8000-byte slice.
 - Full launch_engine.py / pack_portable.py still local-only.
 - Phase 4 exit still needs a Windows host.
+
+## 2026-09-15 14:08 PKT
+
+- GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER.
+- Join + pack_min + launch_min tests 7 passed.
+- This run overwrites remote pack_portable.py.part03 with local 8000-byte slice and pushes part04–part06 (8000 each).
+- Full launch_engine.py / pack_portable.py still local-only.
+- Phase 4 exit still needs a Windows host.
