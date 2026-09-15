@@ -30,3 +30,11 @@ That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py
 - Join + pack_min + launch_min tests 7 passed.
 - Restoring pack_portable.py.part03 to local 8000 bytes and pushing part03-part05.
 - Phase 4 exit still needs Windows host.
+
+## 2026-09-15 12:16 PKT
+
+- GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER.
+- Join + pack_min + launch_min tests 7 passed.
+- Local pack_portable.py.part03–part05 each 8000 bytes, no PLACEHOLDER.
+- Remote part03 still short vs local 8000; full launch_engine.py / pack_portable.py still local-only.
+- Phase 4 exit still needs a Windows host.
