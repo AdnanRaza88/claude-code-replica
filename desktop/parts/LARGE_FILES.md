@@ -1,5 +1,12 @@
-Parts backlog 2026-09-14 01:06 PKT
+# Large files (join from parts)
 
-On GitHub: launch_engine.py.part01-10 + pack_portable.py.part20 + PARTS_INDEX + PARTS_SHA256 + join_large_files.py
-Next: launch_engine.py.part11-25 then pack_portable.py.part01-19
-app.py remote SHA 57e524ef full 655 lines no PLACEHOLDER
+`desktop/launch_engine.py` and `desktop/pack_portable.py` exceed the GitHub connector batch size.
+
+Split into 8KB slices under `desktop/parts/`:
+
+- `launch_engine.py.part01`–`part25` (on remote)
+- `pack_portable.py.part01`–`part20` (part01–03 + part20 on remote; part04–19 local backlog)
+
+Join: `python desktop/parts/join_large_files.py`
+
+Hourly 2026-09-15 06:04 PKT: GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER. Join + pack tests 6 passed. Restoring pack_portable parts 04+.
