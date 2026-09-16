@@ -18,10 +18,10 @@ python desktop/parts/join_large_files.py
 
 That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-## 2026-09-16 15:09 PKT
+## 2026-09-16 16:20 PKT
 
 - GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER. Local match.
 - Join + pack_min + launch_min tests: 7 passed.
-- This run payload: pack_portable.py.part04–part07 (8000 bytes each) + LARGE_FILES + VERSION 0.5.56 + run 20260916-1509.
+- This run payload: pack_portable.py.part04–part07 (8000 bytes each) + LARGE_FILES + VERSION 0.5.56 + run 20260916-1620.
 - Remaining backlog: launch_engine.py, pack_portable.py, pack parts 08–19.
 - Phase 4 exit still needs a Windows host.
