@@ -6,6 +6,8 @@ from .github_tool import GitHubTool
 from .web_tools import WebSearchTool, WebFetchTool
 from .pinchtab_tool import PinchTabTool
 from .agent_reach_tool import AgentReachTool
+from .code_graph_tool import CodeGraphTool
+from .text_tools import DefuddleTool, HumanizeTool
 
 __all__ = [
     "Tool",
@@ -21,4 +23,7 @@ __all__ = [
     "WebFetchTool",
     "PinchTabTool",
     "AgentReachTool",
+    "CodeGraphTool",
+    "DefuddleTool",
+    "HumanizeTool",
 ]
