@@ -9,6 +9,14 @@ Split copies live under `desktop/parts/`:
 - `pack_portable.py.part20` on main
 - `pack_portable.py.part04`–`part19` still local-only until a full 8000-byte slice lands
 
+## 2026-09-16 20:12 PKT
+
+- GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER. Local match.
+- Join + pack_min + launch_min tests: 7 passed.
+- This run payload: LARGE_FILES + VERSION 0.5.56 + run 20260916-2012. Pack part04 kept local (8KB slice not sent through truncated tool channel).
+- Remaining backlog: launch_engine.py, pack_portable.py, pack parts 04–19.
+- Phase 4 exit still needs a Windows host.
+
 Join on a machine with the tree:
 
 ```
