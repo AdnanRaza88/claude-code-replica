@@ -15,8 +15,12 @@ Join on a machine with the tree:
 python desktop/parts/join_large_files.py
 ```
 
-## 2026-09-16 04:04 PKT
+That writes `desktop/parts/launch_engine.py` and `desktop/parts/pack_portable.py`. Copy those over the canonical `desktop/` files after hash check (`PARTS_SHA256.txt`).
 
-- GitHub app.py SHA 57e524ef full 655 lines, no PLACEHOLDER.
-- Join + pack_min + launch_min tests 9 passed.
+## 2026-09-16 07:04 PKT
+
+- GitHub app.py SHA 57e524ef full 655 lines / 26092 bytes, no PLACEHOLDER. Local match.
+- Join + pack_min + launch_min tests: 7 passed.
+- pack_portable.py.part04–part11 remain local 8000 bytes each; not pushed this hour to avoid truncated payloads.
+- Full launch_engine.py / pack_portable.py still local-only.
 - Phase 4 exit still needs a Windows host.
